@@ -187,7 +187,7 @@ class _CountdownScreenState extends State<CountdownScreen>
       );
 
       if (pickedTime != null) {
-        // Créer la date et heure en heure française
+        // Créer la date et heure dans le fuseau sélectionné
         final reunionDateTime = DateTime(
           pickedDate.year,
           pickedDate.month,
@@ -196,20 +196,19 @@ class _CountdownScreenState extends State<CountdownScreen>
           pickedTime.minute,
         );
         
-        // Si le fuseau sélectionné est l'Indonésie, 
-        // on ajuste pour que l'heure saisie corresponde à l'heure indonésienne
-        DateTime adjustedDateTime;
+        // Convertir vers l'heure française pour le calcul
+        DateTime reunionInFranceTime;
         if (_selectedTimezone == 'Indonesia') {
-          // L'utilisateur a saisi une heure indonésienne, 
-          // on la convertit en heure française (Indonésie = France - 5h)
-          adjustedDateTime = reunionDateTime.subtract(const Duration(hours: 5));
+          // L'utilisateur a saisi une heure indonésienne (UTC+7), 
+          // on la convertit en heure française (UTC+2) : Indonésie - 5h = France
+          reunionInFranceTime = reunionDateTime.subtract(const Duration(hours: 5));
         } else {
           // L'heure est déjà en heure française
-          adjustedDateTime = reunionDateTime;
+          reunionInFranceTime = reunionDateTime;
         }
         
         setState(() {
-          _reunionDate = adjustedDateTime;
+          _reunionDate = reunionInFranceTime;
         });
         _updateCountdown();
       }
