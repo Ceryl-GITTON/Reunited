@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const ReunitedCountdownApp());
@@ -43,16 +44,52 @@ class _CountdownScreenState extends State<CountdownScreen>
   
   // Fuseaux horaires avec leurs décalages UTC
   String _selectedTimezone = 'Indonesia'; // Par défaut Indonésie
-  final Map<String, Map<String, dynamic>> _timezones = {
+
+  // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
+  Map<String, Map<String, dynamic>> get _timezones => {
     'France': {
       'name': '🇫🇷 France',
-      'offset': 2, // UTC+2 en été, UTC+1 en hiver (simplifié à UTC+2)
+      'offset': _getFranceOffset(), // Calcul dynamique été/hiver
     },
     'Indonesia': {
       'name': '🇮🇩 Indonésie (Java)',
       'offset': 7, // UTC+7
     },
   };
+
+  // Fonction pour calculer l'offset de la France selon la saison
+  static int _getFranceOffset() {
+    final now = DateTime.now();
+    
+    // Heure d'été : dernier dimanche de mars à dernier dimanche d'octobre
+    final marchLastSunday = _getLastSundayOfMonth(now.year, 3);
+    final octoberLastSunday = _getLastSundayOfMonth(now.year, 10);
+    
+    if (now.isAfter(marchLastSunday) && now.isBefore(octoberLastSunday)) {
+      return 2; // UTC+2 (heure d'été)
+    } else {
+      return 1; // UTC+1 (heure d'hiver)
+    }
+  }
+  
+  // Fonction pour trouver le dernier dimanche d'un mois
+  static DateTime _getLastSundayOfMonth(int year, int month) {
+    // Dernier jour du mois
+    final lastDay = DateTime(year, month + 1, 0);
+    
+    // Trouver le dernier dimanche
+    final daysToSubtract = lastDay.weekday % 7;
+    return DateTime(lastDay.year, lastDay.month, lastDay.day - daysToSubtract);
+  }
+
+  // Fonction pour obtenir le décalage UTC de la machine locale
+  int _getLocalTimezoneOffset() {
+    final now = DateTime.now();
+    final utc = now.toUtc();
+    // Le décalage est calculé en heures : heure locale - heure UTC
+    final offsetInMinutes = now.timeZoneOffset.inMinutes;
+    return (offsetInMinutes / 60).round();
+  }
 
   @override
   void initState() {
@@ -95,10 +132,52 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   void _loadReunionDate() {
-    // Date par défaut dans 30 jours à partir de maintenant (heure française)
+    _loadSavedData(); // Charger les données sauvegardées
+  }
+
+  // Charger les données sauvegardées
+  Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Charger le fuseau horaire de destination
+    final savedTimezone = prefs.getString('selectedTimezone');
+    if (savedTimezone != null && _timezones.containsKey(savedTimezone)) {
+      _selectedTimezone = savedTimezone;
+    }
+    
+    // Charger la date de retrouvailles
+    final savedDateString = prefs.getString('reunionDate');
+    if (savedDateString != null) {
+      try {
+        _reunionDate = DateTime.parse(savedDateString);
+      } catch (e) {
+        // Si la date sauvegardée est invalide, utiliser une date par défaut
+        _setDefaultReunionDate();
+      }
+    } else {
+      _setDefaultReunionDate();
+    }
+    
+    _updateCountdown();
+  }
+
+  // Définir une date par défaut
+  void _setDefaultReunionDate() {
     final now = DateTime.now();
     _reunionDate = now.add(const Duration(days: 30));
-    _updateCountdown();
+  }
+
+  // Sauvegarder les données
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Sauvegarder le fuseau horaire
+    await prefs.setString('selectedTimezone', _selectedTimezone);
+    
+    // Sauvegarder la date de retrouvailles
+    if (_reunionDate != null) {
+      await prefs.setString('reunionDate', _reunionDate!.toIso8601String());
+    }
   }
 
   void _startTimer() {
@@ -109,12 +188,22 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   void _updateCountdown() {
     if (_reunionDate != null) {
-      // L'heure actuelle en France
-      final nowInFrance = DateTime.now();
+      // Heure actuelle locale
+      final now = DateTime.now();
       
-      // La date de retrouvailles est stockée en heure française
-      // On calcule le temps restant directement
-      final difference = _reunionDate!.difference(nowInFrance);
+      // Obtenir le décalage UTC de la machine locale automatiquement
+      final localOffset = _getLocalTimezoneOffset();
+      
+      // Date de retrouvailles saisie dans le fuseau de destination
+      // Je dois la convertir vers mon fuseau local pour calculer le temps restant
+      final destinationOffset = _timezones[_selectedTimezone]!['offset'] as int;
+      final offsetDifference = localOffset - destinationOffset;
+      
+      // Convertir l'heure de retrouvailles vers mon fuseau horaire local
+      final reunionInMyTimezone = _reunionDate!.add(Duration(hours: offsetDifference));
+      
+      // Calculer le temps restant depuis ma perspective locale
+      final difference = reunionInMyTimezone.difference(now);
       
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
@@ -123,7 +212,7 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   Future<void> _selectReunionDate() async {
-    // D'abord choisir le fuseau horaire
+    // Choisir le fuseau horaire de destination seulement
     final String? selectedTz = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -142,13 +231,16 @@ class _CountdownScreenState extends State<CountdownScreen>
       },
     );
 
-    if (selectedTz != null) {
-      setState(() {
-        _selectedTimezone = selectedTz;
-      });
-    }
+    if (selectedTz == null) return;
 
-    // Utiliser l'heure actuelle française pour la sélection
+    setState(() {
+      _selectedTimezone = selectedTz;
+    });
+    
+    // Sauvegarder immédiatement le changement
+    _saveData();
+
+    // Utiliser l'heure actuelle pour la sélection
     final now = DateTime.now();
 
     final DateTime? pickedDate = await showDatePicker(
@@ -187,7 +279,7 @@ class _CountdownScreenState extends State<CountdownScreen>
       );
 
       if (pickedTime != null) {
-        // Créer la date et heure dans le fuseau sélectionné
+        // Créer la date et heure dans le fuseau de destination (retrouvailles)
         final reunionDateTime = DateTime(
           pickedDate.year,
           pickedDate.month,
@@ -196,20 +288,14 @@ class _CountdownScreenState extends State<CountdownScreen>
           pickedTime.minute,
         );
         
-        // Convertir vers l'heure française pour le calcul
-        DateTime reunionInFranceTime;
-        if (_selectedTimezone == 'Indonesia') {
-          // L'utilisateur a saisi une heure indonésienne (UTC+7), 
-          // on la convertit en heure française (UTC+2) : Indonésie - 5h = France
-          reunionInFranceTime = reunionDateTime.subtract(const Duration(hours: 5));
-        } else {
-          // L'heure est déjà en heure française
-          reunionInFranceTime = reunionDateTime;
-        }
-        
+        // Stocker directement l'heure de destination
+        // Le calcul se fera dans _updateCountdown
         setState(() {
-          _reunionDate = reunionInFranceTime;
+          _reunionDate = reunionDateTime;
         });
+        
+        // Sauvegarder immédiatement la nouvelle date
+        _saveData();
         _updateCountdown();
       }
     }
