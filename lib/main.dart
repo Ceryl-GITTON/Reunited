@@ -112,14 +112,18 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   void _updateCountdown() {
     if (_reunionDate != null) {
-      // Obtenir l'heure actuelle en France (UTC+2 simplifié)
-      final now = DateTime.now().toUtc();
-      final franceOffset = Duration(hours: 2); // UTC+2 (heure d'été)
-      final nowInFrance = now.add(franceOffset);
+      // Heure actuelle locale (France)
+      final nowLocal = DateTime.now();
       
-      // Calculer le temps jusqu'aux retrouvailles
-      // La date de retrouvailles est déjà dans le bon fuseau horaire
-      final difference = _reunionDate!.difference(nowInFrance);
+      // Créer la date de retrouvailles en UTC selon le fuseau sélectionné
+      final selectedOffset = _timezones[_selectedTimezone]!['offset'];
+      final reunionUtc = _reunionDate!.subtract(Duration(hours: selectedOffset));
+      
+      // Convertir en heure locale française pour la comparaison
+      final franceOffset = 2; // UTC+2 (heure d'été)
+      final reunionInFrance = reunionUtc.add(Duration(hours: franceOffset));
+      
+      final difference = reunionInFrance.difference(nowLocal);
       
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
