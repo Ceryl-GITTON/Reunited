@@ -95,12 +95,9 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   void _loadReunionDate() {
-    // Date par défaut dans 30 jours
-    // Calculée en UTC+7 (Indonésie) par défaut
-    final now = DateTime.now().toUtc();
-    final indonesiaOffset = Duration(hours: 7);
-    final nowInIndonesia = now.add(indonesiaOffset);
-    _reunionDate = nowInIndonesia.add(const Duration(days: 30));
+    // Date par défaut dans 30 jours à partir de maintenant (heure française)
+    final now = DateTime.now();
+    _reunionDate = now.add(const Duration(days: 30));
     _updateCountdown();
   }
 
@@ -112,18 +109,12 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   void _updateCountdown() {
     if (_reunionDate != null) {
-      // Heure actuelle locale (France)
-      final nowLocal = DateTime.now();
+      // L'heure actuelle en France
+      final nowInFrance = DateTime.now();
       
-      // Créer la date de retrouvailles en UTC selon le fuseau sélectionné
-      final selectedOffset = _timezones[_selectedTimezone]!['offset'];
-      final reunionUtc = _reunionDate!.subtract(Duration(hours: selectedOffset));
-      
-      // Convertir en heure locale française pour la comparaison
-      final franceOffset = 2; // UTC+2 (heure d'été)
-      final reunionInFrance = reunionUtc.add(Duration(hours: franceOffset));
-      
-      final difference = reunionInFrance.difference(nowLocal);
+      // La date de retrouvailles est stockée en heure française
+      // On calcule le temps restant directement
+      final difference = _reunionDate!.difference(nowInFrance);
       
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
@@ -157,16 +148,14 @@ class _CountdownScreenState extends State<CountdownScreen>
       });
     }
 
-    // Calculer l'heure actuelle dans le fuseau sélectionné
-    final now = DateTime.now().toUtc();
-    final selectedOffset = Duration(hours: _timezones[_selectedTimezone]!['offset']);
-    final nowInSelectedTz = now.add(selectedOffset);
+    // Utiliser l'heure actuelle française pour la sélection
+    final now = DateTime.now();
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _reunionDate ?? nowInSelectedTz.add(const Duration(days: 1)),
-      firstDate: nowInSelectedTz,
-      lastDate: nowInSelectedTz.add(const Duration(days: 365)),
+      initialDate: _reunionDate ?? now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -198,7 +187,7 @@ class _CountdownScreenState extends State<CountdownScreen>
       );
 
       if (pickedTime != null) {
-        // Créer la date dans le fuseau horaire sélectionné
+        // Créer la date et heure en heure française
         final reunionDateTime = DateTime(
           pickedDate.year,
           pickedDate.month,
@@ -207,8 +196,20 @@ class _CountdownScreenState extends State<CountdownScreen>
           pickedTime.minute,
         );
         
+        // Si le fuseau sélectionné est l'Indonésie, 
+        // on ajuste pour que l'heure saisie corresponde à l'heure indonésienne
+        DateTime adjustedDateTime;
+        if (_selectedTimezone == 'Indonesia') {
+          // L'utilisateur a saisi une heure indonésienne, 
+          // on la convertit en heure française (Indonésie = France - 5h)
+          adjustedDateTime = reunionDateTime.subtract(const Duration(hours: 5));
+        } else {
+          // L'heure est déjà en heure française
+          adjustedDateTime = reunionDateTime;
+        }
+        
         setState(() {
-          _reunionDate = reunionDateTime;
+          _reunionDate = adjustedDateTime;
         });
         _updateCountdown();
       }
