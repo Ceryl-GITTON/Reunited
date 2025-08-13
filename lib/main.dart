@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
-  tz.initializeTimeZones();
   runApp(const ReunitedCountdownApp());
 }
 
@@ -44,11 +41,17 @@ class _CountdownScreenState extends State<CountdownScreen>
   late AnimationController _heartController;
   late Animation<double> _heartAnimation;
   
-  // Fuseaux horaires
-  String _selectedTimezone = 'Asia/Jakarta'; // Par défaut Indonésie
-  final Map<String, String> _timezones = {
-    'Europe/Paris': '🇫🇷 France',
-    'Asia/Jakarta': '🇮🇩 Indonésie (Java)',
+  // Fuseaux horaires avec leurs décalages UTC
+  String _selectedTimezone = 'Indonesia'; // Par défaut Indonésie
+  final Map<String, Map<String, dynamic>> _timezones = {
+    'France': {
+      'name': '🇫🇷 France',
+      'offset': 2, // UTC+2 en été, UTC+1 en hiver (simplifié à UTC+2)
+    },
+    'Indonesia': {
+      'name': '🇮🇩 Indonésie (Java)',
+      'offset': 7, // UTC+7
+    },
   };
 
   @override
@@ -92,10 +95,12 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   void _loadReunionDate() {
-    // Date par défaut dans 30 jours en heure locale de l'Indonésie
-    final jakarta = tz.getLocation('Asia/Jakarta');
-    final now = tz.TZDateTime.now(jakarta);
-    _reunionDate = now.add(const Duration(days: 30));
+    // Date par défaut dans 30 jours
+    // Calculée en UTC+7 (Indonésie) par défaut
+    final now = DateTime.now().toUtc();
+    final indonesiaOffset = Duration(hours: 7);
+    final nowInIndonesia = now.add(indonesiaOffset);
+    _reunionDate = nowInIndonesia.add(const Duration(days: 30));
     _updateCountdown();
   }
 
@@ -107,16 +112,14 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   void _updateCountdown() {
     if (_reunionDate != null) {
-      // Obtenir l'heure actuelle dans le fuseau de la France
-      final paris = tz.getLocation('Europe/Paris');
-      final nowInParis = tz.TZDateTime.now(paris);
+      // Obtenir l'heure actuelle en France (UTC+2 simplifié)
+      final now = DateTime.now().toUtc();
+      final franceOffset = Duration(hours: 2); // UTC+2 (heure d'été)
+      final nowInFrance = now.add(franceOffset);
       
-      // Convertir la date de retrouvailles en heure française pour comparaison
-      final selectedLocation = tz.getLocation(_selectedTimezone);
-      final reunionInSelectedTz = tz.TZDateTime.from(_reunionDate!, selectedLocation);
-      final reunionInParis = tz.TZDateTime.from(reunionInSelectedTz, paris);
-      
-      final difference = reunionInParis.difference(nowInParis);
+      // Calculer le temps jusqu'aux retrouvailles
+      // La date de retrouvailles est déjà dans le bon fuseau horaire
+      final difference = _reunionDate!.difference(nowInFrance);
       
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
@@ -135,7 +138,7 @@ class _CountdownScreenState extends State<CountdownScreen>
             mainAxisSize: MainAxisSize.min,
             children: _timezones.entries.map((entry) {
               return ListTile(
-                title: Text(entry.value),
+                title: Text(entry.value['name']),
                 onTap: () => Navigator.of(context).pop(entry.key),
               );
             }).toList(),
@@ -150,14 +153,16 @@ class _CountdownScreenState extends State<CountdownScreen>
       });
     }
 
-    final selectedLocation = tz.getLocation(_selectedTimezone);
-    final nowInSelectedTz = tz.TZDateTime.now(selectedLocation);
+    // Calculer l'heure actuelle dans le fuseau sélectionné
+    final now = DateTime.now().toUtc();
+    final selectedOffset = Duration(hours: _timezones[_selectedTimezone]!['offset']);
+    final nowInSelectedTz = now.add(selectedOffset);
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _reunionDate?.toLocal() ?? nowInSelectedTz.add(const Duration(days: 1)).toLocal(),
-      firstDate: nowInSelectedTz.toLocal(),
-      lastDate: nowInSelectedTz.add(const Duration(days: 365)).toLocal(),
+      initialDate: _reunionDate ?? nowInSelectedTz.add(const Duration(days: 1)),
+      firstDate: nowInSelectedTz,
+      lastDate: nowInSelectedTz.add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -190,8 +195,7 @@ class _CountdownScreenState extends State<CountdownScreen>
 
       if (pickedTime != null) {
         // Créer la date dans le fuseau horaire sélectionné
-        final reunionDateTime = tz.TZDateTime(
-          selectedLocation,
+        final reunionDateTime = DateTime(
           pickedDate.year,
           pickedDate.month,
           pickedDate.day,
@@ -353,7 +357,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            '${_timezones[_selectedTimezone]}',
+                                            '${_timezones[_selectedTimezone]!['name']}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: Colors.pink[600],
