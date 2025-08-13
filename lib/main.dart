@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
+  tz.initializeTimeZones();
   runApp(const ReunitedCountdownApp());
 }
 
@@ -40,6 +43,13 @@ class _CountdownScreenState extends State<CountdownScreen>
   late Animation<double> _pulseAnimation;
   late AnimationController _heartController;
   late Animation<double> _heartAnimation;
+  
+  // Fuseaux horaires
+  String _selectedTimezone = 'Asia/Jakarta'; // Par défaut Indonésie
+  final Map<String, String> _timezones = {
+    'Europe/Paris': '🇫🇷 France',
+    'Asia/Jakarta': '🇮🇩 Indonésie (Java)',
+  };
 
   @override
   void initState() {
@@ -82,9 +92,10 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   void _loadReunionDate() {
-    // Pour l'exemple, je mets une date dans 30 jours
-    // Tu pourras modifier cette date selon tes besoins
-    _reunionDate = DateTime.now().add(const Duration(days: 30));
+    // Date par défaut dans 30 jours en heure locale de l'Indonésie
+    final jakarta = tz.getLocation('Asia/Jakarta');
+    final now = tz.TZDateTime.now(jakarta);
+    _reunionDate = now.add(const Duration(days: 30));
     _updateCountdown();
   }
 
@@ -96,8 +107,16 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   void _updateCountdown() {
     if (_reunionDate != null) {
-      final now = DateTime.now();
-      final difference = _reunionDate!.difference(now);
+      // Obtenir l'heure actuelle dans le fuseau de la France
+      final paris = tz.getLocation('Europe/Paris');
+      final nowInParis = tz.TZDateTime.now(paris);
+      
+      // Convertir la date de retrouvailles en heure française pour comparaison
+      final selectedLocation = tz.getLocation(_selectedTimezone);
+      final reunionInSelectedTz = tz.TZDateTime.from(_reunionDate!, selectedLocation);
+      final reunionInParis = tz.TZDateTime.from(reunionInSelectedTz, paris);
+      
+      final difference = reunionInParis.difference(nowInParis);
       
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
@@ -106,11 +125,39 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   Future<void> _selectReunionDate() async {
+    // D'abord choisir le fuseau horaire
+    final String? selectedTz = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Où auront lieu vos retrouvailles ? 🌍'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _timezones.entries.map((entry) {
+              return ListTile(
+                title: Text(entry.value),
+                onTap: () => Navigator.of(context).pop(entry.key),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+
+    if (selectedTz != null) {
+      setState(() {
+        _selectedTimezone = selectedTz;
+      });
+    }
+
+    final selectedLocation = tz.getLocation(_selectedTimezone);
+    final nowInSelectedTz = tz.TZDateTime.now(selectedLocation);
+
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _reunionDate ?? DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: _reunionDate?.toLocal() ?? nowInSelectedTz.add(const Duration(days: 1)).toLocal(),
+      firstDate: nowInSelectedTz.toLocal(),
+      lastDate: nowInSelectedTz.add(const Duration(days: 365)).toLocal(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -142,14 +189,18 @@ class _CountdownScreenState extends State<CountdownScreen>
       );
 
       if (pickedTime != null) {
+        // Créer la date dans le fuseau horaire sélectionné
+        final reunionDateTime = tz.TZDateTime(
+          selectedLocation,
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        
         setState(() {
-          _reunionDate = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
+          _reunionDate = reunionDateTime;
         });
         _updateCountdown();
       }
@@ -289,14 +340,28 @@ class _CountdownScreenState extends State<CountdownScreen>
                                     ),
                                     const SizedBox(height: 30),
                                     if (_reunionDate != null)
-                                      Text(
-                                        'Rendez-vous le ${DateFormat('dd/MM/yyyy à HH:mm').format(_reunionDate!)}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.pink[700],
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        textAlign: TextAlign.center,
+                                      Column(
+                                        children: [
+                                          Text(
+                                            'Rendez-vous le ${DateFormat('dd/MM/yyyy à HH:mm').format(_reunionDate!)}',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.pink[700],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            '${_timezones[_selectedTimezone]}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.pink[600],
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
                                       ),
                                   ],
                                 ),
