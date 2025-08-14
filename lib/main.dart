@@ -52,11 +52,15 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
   Map<String, Map<String, dynamic>> get _timezones => {
     'France': {
-      'name': '🇫🇷 France',
+      'displayName': 'France',
+      'flagAsset': null, // Pas d'image pour la France pour l'instant
+      'flagEmoji': '🇫🇷',
       'offset': _getFranceOffset(), // Calcul dynamique été/hiver
     },
     'Indonesia': {
-      'name': '🇮🇩 Indonésie (Java)',
+      'displayName': 'Indonésie (Java)',
+      'flagAsset': 'assets/indonesia_flag.png',
+      'flagEmoji': '🇮🇩',
       'offset': 7, // UTC+7
     },
   };
@@ -225,8 +229,11 @@ class _CountdownScreenState extends State<CountdownScreen>
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: _timezones.entries.map((entry) {
+              final timezone = entry.value;
               return ListTile(
-                title: Text(entry.value['name']),
+                title: timezone['flagAsset'] != null 
+                  ? _buildFlagWithText(timezone['flagAsset'], timezone['displayName'])
+                  : Text('${timezone['flagEmoji']} ${timezone['displayName']}'),
                 onTap: () => Navigator.of(context).pop(entry.key),
               );
             }).toList(),
@@ -307,6 +314,41 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   String _formatTimeComponent(int value, String label) {
     return '$value\n$label${value > 1 ? 's' : ''}';
+  }
+
+  Widget _buildFlagWithText(String flagAsset, String text) {
+    return Row(
+      children: [
+        Image.asset(
+          flagAsset,
+          width: 24,
+          height: 24,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.flag, size: 24);
+          },
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text)),
+      ],
+    );
+  }
+
+  Widget _buildCenteredFlagWithText(String flagAsset, String text, TextStyle style) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          flagAsset,
+          width: 20,
+          height: 20,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.flag, size: 20);
+          },
+        ),
+        const SizedBox(width: 8),
+        Text(text, style: style, textAlign: TextAlign.center),
+      ],
+    );
   }
 
   @override
@@ -450,14 +492,31 @@ class _CountdownScreenState extends State<CountdownScreen>
                                             textAlign: TextAlign.center,
                                           ),
                                           const SizedBox(height: 8),
-                                          Text(
-                                            '${_timezones[_selectedTimezone]!['name']}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.pink[600],
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                            textAlign: TextAlign.center,
+                                          Builder(
+                                            builder: (context) {
+                                              final timezone = _timezones[_selectedTimezone]!;
+                                              if (timezone['flagAsset'] != null) {
+                                                return _buildCenteredFlagWithText(
+                                                  timezone['flagAsset'], 
+                                                  timezone['displayName'],
+                                                  TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.pink[600],
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                );
+                                              } else {
+                                                return Text(
+                                                  '${timezone['flagEmoji']} ${timezone['displayName']}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.pink[600],
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                );
+                                              }
+                                            },
                                           ),
                                         ],
                                       ),
