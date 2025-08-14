@@ -48,11 +48,11 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
   Map<String, Map<String, dynamic>> get _timezones => {
     'France': {
-      'name': '🇫🇷 France',
+      'name': '🗼 France',
       'offset': _getFranceOffset(), // Calcul dynamique été/hiver
     },
     'Indonesia': {
-      'name': '🇮🇩 Indonésie (Java)',
+      'name': '�️ Indonésie (Java)',
       'offset': 7, // UTC+7
     },
   };
