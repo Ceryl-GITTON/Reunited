@@ -1,0 +1,65 @@
+name: Deploy Simple Mobile App
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lib/simple_mobile_app.dart'
+      - 'web/mobile.html'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: 'any'
+        channel: 'stable'
+
+    - name: Get dependencies (skip localizations)
+      run: |
+        # Supprimer temporairement la génération de localizations
+        flutter pub get || true
+
+    - name: Build simple mobile web app
+      run: |
+        flutter build web \
+          --target lib/simple_mobile_app.dart \
+          --base-href /Reunited/mobile/ \
+          --release || flutter build web --target lib/simple_mobile_app.dart --release
+
+    - name: Copy mobile assets
+      run: |
+        # Utiliser le build par défaut
+        cp -r build/web build/mobile || mkdir -p build/mobile && cp -r build/web/* build/mobile/
+        
+        # Copier les fichiers web personnalisés si ils existent
+        [ -f web/mobile.html ] && cp web/mobile.html build/mobile/index.html || true
+        [ -f web/mobile-manifest.json ] && cp web/mobile-manifest.json build/mobile/manifest.json || true
+        
+        # Copier les assets si ils existent
+        [ -d assets ] && cp -r assets build/mobile/ || true
+        
+        # Créer le fichier .nojekyll pour GitHub Pages
+        touch build/mobile/.nojekyll
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/mobile
+        destination_dir: mobile
+        enable_jekyll: false
+
+    - name: Notification de déploiement
+      if: success()
+      run: |
+        echo "✅ Application mobile simple déployée avec succès !"
+        echo "🌐 URL: https://ceryl-gitton.github.io/Reunited/mobile/"
