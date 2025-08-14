@@ -1,0 +1,23 @@
+{
+  "appTitle": "Reunited Countdown",
+  "timeBeforeReunion": "Temps avant nos retrouvailles",
+  "itsTime": "C'est le moment ! 💕",
+  "modifyReunionDate": "Modifier la date des retrouvailles",
+  "whereWillReunionTakePlace": "Où auront lieu vos retrouvailles ?",
+  "appointmentOn": "Rendez-vous le {date}",
+  "france": "France",
+  "indonesiaJava": "Indonésie (Java)",
+  "day": "Jour",
+  "days": "Jours",
+  "hour": "Heure",
+  "hours": "Heures",
+  "minute": "Minute",
+  "minutes": "Minutes",
+  "second": "Seconde",
+  "seconds": "Secondes",
+  "languageSettings": "Langue",
+  "selectLanguage": "Choisir la langue",
+  "english": "English",
+  "french": "Français",
+  "indonesian": "Bahasa Indonesia"
+}

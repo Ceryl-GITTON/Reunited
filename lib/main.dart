@@ -3,18 +3,67 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 void main() {
   runApp(const ReunitedCountdownApp());
 }
 
-class ReunitedCountdownApp extends StatelessWidget {
+class ReunitedCountdownApp extends StatefulWidget {
   const ReunitedCountdownApp({super.key});
+
+  @override
+  State<ReunitedCountdownApp> createState() => _ReunitedCountdownAppState();
+}
+
+class _ReunitedCountdownAppState extends State<ReunitedCountdownApp> {
+  Locale? _locale;
+
+  void _changeLanguage(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+    _saveLanguagePreference(locale);
+  }
+
+  void _saveLanguagePreference(Locale locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language_code', locale.languageCode);
+  }
+
+  void _loadLanguagePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final languageCode = prefs.getString('language_code');
+    if (languageCode != null) {
+      setState(() {
+        _locale = Locale(languageCode);
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLanguagePreference();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Reunited Countdown',
+      locale: _locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('fr'), // French
+        Locale('id'), // Indonesian
+      ],
       theme: ThemeData(
         primarySwatch: Colors.pink,
         useMaterial3: true,
@@ -24,13 +73,15 @@ class ReunitedCountdownApp extends StatelessWidget {
           fontFamilyFallback: ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'],
         ),
       ),
-      home: const CountdownScreen(),
+      home: CountdownScreen(onLanguageChange: _changeLanguage),
     );
   }
 }
 
 class CountdownScreen extends StatefulWidget {
-  const CountdownScreen({super.key});
+  final Function(Locale) onLanguageChange;
+  
+  const CountdownScreen({super.key, required this.onLanguageChange});
 
   @override
   State<CountdownScreen> createState() => _CountdownScreenState();
@@ -49,16 +100,31 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Fuseaux horaires avec leurs décalages UTC
   String _selectedTimezone = 'Indonesia'; // Par défaut Indonésie
 
+  // Liste des clés de fuseaux horaires valides
+  static const List<String> _validTimezoneKeys = ['France', 'Indonesia'];
+
+  // Fonction pour obtenir l'offset d'un fuseau horaire sans contexte
+  int _getTimezoneOffset(String timezoneKey) {
+    switch (timezoneKey) {
+      case 'France':
+        return _getFranceOffset();
+      case 'Indonesia':
+        return 7;
+      default:
+        return 0;
+    }
+  }
+
   // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
-  Map<String, Map<String, dynamic>> get _timezones => {
+  Map<String, Map<String, dynamic>> _getTimezones(BuildContext context) => {
     'France': {
-      'displayName': 'France',
-      'flagAsset': null, // Pas d'image pour la France pour l'instant
+      'displayName': AppLocalizations.of(context)!.france,
+      'flagAsset': 'assets/france_flag.png',
       'flagEmoji': '🇫🇷',
       'offset': _getFranceOffset(), // Calcul dynamique été/hiver
     },
     'Indonesia': {
-      'displayName': 'Indonésie (Java)',
+      'displayName': AppLocalizations.of(context)!.indonesiaJava,
       'flagAsset': 'assets/indonesia_flag.png',
       'flagEmoji': '🇮🇩',
       'offset': 7, // UTC+7
@@ -149,7 +215,7 @@ class _CountdownScreenState extends State<CountdownScreen>
     
     // Charger le fuseau horaire de destination
     final savedTimezone = prefs.getString('selectedTimezone');
-    if (savedTimezone != null && _timezones.containsKey(savedTimezone)) {
+    if (savedTimezone != null && _validTimezoneKeys.contains(savedTimezone)) {
       _selectedTimezone = savedTimezone;
     }
     
@@ -204,7 +270,7 @@ class _CountdownScreenState extends State<CountdownScreen>
       
       // Date de retrouvailles saisie dans le fuseau de destination
       // Je dois la convertir vers mon fuseau local pour calculer le temps restant
-      final destinationOffset = _timezones[_selectedTimezone]!['offset'] as int;
+      final destinationOffset = _getTimezoneOffset(_selectedTimezone);
       final offsetDifference = localOffset - destinationOffset;
       
       // Convertir l'heure de retrouvailles vers mon fuseau horaire local
@@ -225,10 +291,24 @@ class _CountdownScreenState extends State<CountdownScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Où auront lieu vos retrouvailles ? 🌍'),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(AppLocalizations.of(context)!.whereWillReunionTakePlace),
+              const SizedBox(width: 8),
+              Image.asset(
+                'assets/globe_icon.png',
+                width: 20,
+                height: 20,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Text('🌍');
+                },
+              ),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: _timezones.entries.map((entry) {
+            children: _getTimezones(context).entries.map((entry) {
               final timezone = entry.value;
               return ListTile(
                 title: timezone['flagAsset'] != null 
@@ -316,6 +396,21 @@ class _CountdownScreenState extends State<CountdownScreen>
     return '$value\n$label${value > 1 ? 's' : ''}';
   }
 
+  String _getLocalizedTimeLabel(BuildContext context, int value, String timeType) {
+    switch (timeType) {
+      case 'day':
+        return value > 1 ? AppLocalizations.of(context)!.days : AppLocalizations.of(context)!.day;
+      case 'hour':
+        return value > 1 ? AppLocalizations.of(context)!.hours : AppLocalizations.of(context)!.hour;
+      case 'minute':
+        return value > 1 ? AppLocalizations.of(context)!.minutes : AppLocalizations.of(context)!.minute;
+      case 'second':
+        return value > 1 ? AppLocalizations.of(context)!.seconds : AppLocalizations.of(context)!.second;
+      default:
+        return '';
+    }
+  }
+
   Widget _buildFlagWithText(String flagAsset, String text) {
     return Row(
       children: [
@@ -351,6 +446,103 @@ class _CountdownScreenState extends State<CountdownScreen>
     );
   }
 
+  Future<void> _showLanguageSelector() async {
+    final Map<String, Map<String, String>> languages = {
+      'en': {
+        'name': AppLocalizations.of(context)!.english,
+        'flag': '🇬🇧',
+      },
+      'fr': {
+        'name': AppLocalizations.of(context)!.french,
+        'flag': '🇫🇷',
+      },
+      'id': {
+        'name': AppLocalizations.of(context)!.indonesian,
+        'flag': '🇮🇩',
+      },
+    };
+
+    final String? selectedLanguage = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.language, color: Colors.pink),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.selectLanguage),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: languages.entries.map((entry) {
+              final isSelected = Localizations.localeOf(context).languageCode == entry.key;
+              return ListTile(
+                leading: Text(
+                  entry.value['flag']!,
+                  style: const TextStyle(fontSize: 24),
+                ),
+                title: Text(entry.value['name']!),
+                trailing: isSelected 
+                  ? const Icon(Icons.check, color: Colors.pink)
+                  : null,
+                onTap: () => Navigator.of(context).pop(entry.key),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+
+    if (selectedLanguage != null) {
+      widget.onLanguageChange(Locale(selectedLanguage));
+    }
+  }
+
+  String _getCurrentLanguageFlag() {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    switch (languageCode) {
+      case 'fr':
+        return '🇫🇷';
+      case 'id':
+        return '🇮🇩';
+      default:
+        return '🇬🇧';
+    }
+  }
+
+  Widget _buildFlagImage(String languageCode, {double size = 20}) {
+    switch (languageCode) {
+      case 'fr':
+        return Image.asset(
+          'assets/france_flag.png',
+          width: size,
+          height: size,
+          errorBuilder: (context, error, stackTrace) {
+            return Text('🇫🇷', style: TextStyle(fontSize: size));
+          },
+        );
+      case 'id':
+        return Image.asset(
+          'assets/indonesia_flag.png',
+          width: size,
+          height: size,
+          errorBuilder: (context, error, stackTrace) {
+            return Text('🇮🇩', style: TextStyle(fontSize: size));
+          },
+        );
+      default: // 'en' - utiliser l'image PNG du drapeau britannique
+        return Image.asset(
+          'assets/uk_flag.png',
+          width: size,
+          height: size,
+          errorBuilder: (context, error, stackTrace) {
+            return Text('🇬🇧', style: TextStyle(fontSize: size));
+          },
+        );
+    }
+  }
+
   @override
   void dispose() {
     _timer.cancel();
@@ -367,6 +559,73 @@ class _CountdownScreenState extends State<CountdownScreen>
     final seconds = _timeRemaining.inSeconds % 60;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.language, color: Colors.white),
+                const SizedBox(width: 4),
+                _buildFlagImage(Localizations.localeOf(context).languageCode, size: 16),
+              ],
+            ),
+            onSelected: (String languageCode) {
+              widget.onLanguageChange(Locale(languageCode));
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'en',
+                child: Row(
+                  children: [
+                    _buildFlagImage('en', size: 24),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)!.english),
+                    if (Localizations.localeOf(context).languageCode == 'en')
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Icon(Icons.check, color: Colors.pink, size: 16),
+                      ),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'fr',
+                child: Row(
+                  children: [
+                    _buildFlagImage('fr', size: 24),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)!.french),
+                    if (Localizations.localeOf(context).languageCode == 'fr')
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Icon(Icons.check, color: Colors.pink, size: 16),
+                      ),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'id',
+                child: Row(
+                  children: [
+                    _buildFlagImage('id', size: 24),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)!.indonesian),
+                    if (Localizations.localeOf(context).languageCode == 'id')
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Icon(Icons.check, color: Colors.pink, size: 16),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -401,9 +660,9 @@ class _CountdownScreenState extends State<CountdownScreen>
                       },
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Temps avant nos retrouvailles',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.timeBeforeReunion,
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -456,7 +715,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                                     ),
                                     const SizedBox(height: 20),
                                     Text(
-                                      'C\'est le moment ! 💕',
+                                      AppLocalizations.of(context)!.itsTime,
                                       style: TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
@@ -472,10 +731,10 @@ class _CountdownScreenState extends State<CountdownScreen>
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        _buildTimeCard(days, 'Jour'),
-                                        _buildTimeCard(hours, 'Heure'),
-                                        _buildTimeCard(minutes, 'Minute'),
-                                        _buildTimeCard(seconds, 'Seconde'),
+                                        _buildTimeCard(days, _getLocalizedTimeLabel(context, days, 'day')),
+                                        _buildTimeCard(hours, _getLocalizedTimeLabel(context, hours, 'hour')),
+                                        _buildTimeCard(minutes, _getLocalizedTimeLabel(context, minutes, 'minute')),
+                                        _buildTimeCard(seconds, _getLocalizedTimeLabel(context, seconds, 'second')),
                                       ],
                                     ),
                                     const SizedBox(height: 30),
@@ -483,7 +742,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                                       Column(
                                         children: [
                                           Text(
-                                            'Rendez-vous le ${DateFormat('dd/MM/yyyy à HH:mm').format(_reunionDate!)}',
+                                            AppLocalizations.of(context)!.appointmentOn(DateFormat('dd/MM/yyyy à HH:mm').format(_reunionDate!)),
                                             style: TextStyle(
                                               fontSize: 16,
                                               color: Colors.pink[700],
@@ -494,7 +753,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                                           const SizedBox(height: 8),
                                           Builder(
                                             builder: (context) {
-                                              final timezone = _timezones[_selectedTimezone]!;
+                                              final timezone = _getTimezones(context)[_selectedTimezone]!;
                                               if (timezone['flagAsset'] != null) {
                                                 return _buildCenteredFlagWithText(
                                                   timezone['flagAsset'], 
@@ -537,9 +796,9 @@ class _CountdownScreenState extends State<CountdownScreen>
                 child: ElevatedButton.icon(
                   onPressed: _selectReunionDate,
                   icon: const Icon(Icons.calendar_today, color: Colors.white),
-                  label: const Text(
-                    'Modifier la date des retrouvailles',
-                    style: TextStyle(
+                  label: Text(
+                    AppLocalizations.of(context)!.modifyReunionDate,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -582,7 +841,7 @@ class _CountdownScreenState extends State<CountdownScreen>
           ),
           const SizedBox(height: 5),
           Text(
-            label + (value > 1 ? 's' : ''),
+            label,
             style: TextStyle(
               fontSize: 12,
               color: Colors.pink[600],

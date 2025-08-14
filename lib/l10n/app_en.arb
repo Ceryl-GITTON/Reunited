@@ -1,0 +1,92 @@
+{
+  "appTitle": "Reunited Countdown",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "timeBeforeReunion": "Time until our reunion",
+  "@timeBeforeReunion": {
+    "description": "Main title displayed on the countdown screen"
+  },
+  "itsTime": "It's time! 💕",
+  "@itsTime": {
+    "description": "Message displayed when countdown reaches zero"
+  },
+  "modifyReunionDate": "Modify reunion date",
+  "@modifyReunionDate": {
+    "description": "Button text to modify the reunion date"
+  },
+  "whereWillReunionTakePlace": "Where will your reunion take place?",
+  "@whereWillReunionTakePlace": {
+    "description": "Title of the timezone selection dialog"
+  },
+  "appointmentOn": "Appointment on {date}",
+  "@appointmentOn": {
+    "description": "Text showing the appointment date",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "25/12/2023 at 14:30"
+      }
+    }
+  },
+  "france": "France",
+  "@france": {
+    "description": "Country name for France"
+  },
+  "indonesiaJava": "Indonesia (Java)",
+  "@indonesiaJava": {
+    "description": "Country and region name for Indonesia Java"
+  },
+  "day": "Day",
+  "@day": {
+    "description": "Singular form of day"
+  },
+  "days": "Days",
+  "@days": {
+    "description": "Plural form of day"
+  },
+  "hour": "Hour",
+  "@hour": {
+    "description": "Singular form of hour"
+  },
+  "hours": "Hours",
+  "@hours": {
+    "description": "Plural form of hour"
+  },
+  "minute": "Minute",
+  "@minute": {
+    "description": "Singular form of minute"
+  },
+  "minutes": "Minutes",
+  "@minutes": {
+    "description": "Plural form of minute"
+  },
+  "second": "Second",
+  "@second": {
+    "description": "Singular form of second"
+  },
+  "seconds": "Seconds",
+  "@seconds": {
+    "description": "Plural form of second"
+  },
+  "languageSettings": "Language",
+  "@languageSettings": {
+    "description": "Language settings menu title"
+  },
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Title for language selection dialog"
+  },
+  "english": "English",
+  "@english": {
+    "description": "English language name"
+  },
+  "french": "Français",
+  "@french": {
+    "description": "French language name"
+  },
+  "indonesian": "Bahasa Indonesia",
+  "@indonesian": {
+    "description": "Indonesian language name"
+  }
+}
