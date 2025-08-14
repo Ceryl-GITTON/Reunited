@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Fond dégradé rose -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB6C1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF69B4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF1493;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heart" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFF8DC;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fond circulaire -->
+  <circle cx="256" cy="256" r="240" fill="url(#bg)" stroke="#FFFFFF" stroke-width="8"/>
+  
+  <!-- Cœur principal -->
+  <path d="M256 416c-25.6-32-64-64-64-128 0-64 32-96 64-96s64 32 64 96c0 64-38.4 96-64 128z" fill="url(#heart)" stroke="#FF1493" stroke-width="4"/>
+  
+  <!-- Partie gauche du cœur -->
+  <circle cx="224" cy="224" r="48" fill="url(#heart)" stroke="#FF1493" stroke-width="4"/>
+  
+  <!-- Partie droite du cœur -->
+  <circle cx="288" cy="224" r="48" fill="url(#heart)" stroke="#FF1493" stroke-width="4"/>
+  
+  <!-- Petites étoiles autour -->
+  <g fill="#FFFFFF" opacity="0.8">
+    <polygon points="150,150 155,160 165,160 157,167 160,177 150,170 140,177 143,167 135,160 145,160" />
+    <polygon points="370,140 375,150 385,150 377,157 380,167 370,160 360,167 363,157 355,150 365,150" />
+    <polygon points="380,300 385,310 395,310 387,317 390,327 380,320 370,327 373,317 365,310 375,310" />
+    <polygon points="140,320 145,330 155,330 147,337 150,347 140,340 130,347 133,337 125,330 135,330" />
+  </g>
+  
+  <!-- Reflet sur le cœur -->
+  <ellipse cx="240" cy="200" rx="20" ry="30" fill="#FFFFFF" opacity="0.4"/>
+</svg>

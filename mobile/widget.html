@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Countdown</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ff6b9d, #e91e63, #ad1457);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+    
+    .widget-container {
+      width: 100%;
+      height: 100%;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .widget-title {
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    
+    .countdown-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .countdown-main {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .countdown-subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+    
+    .countdown-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      width: 100%;
+      font-size: 10px;
+    }
+    
+    .countdown-item {
+      text-align: center;
+    }
+    
+    .countdown-number {
+      font-size: 16px;
+      font-weight: bold;
+      display: block;
+    }
+    
+    .countdown-label {
+      opacity: 0.7;
+      font-size: 8px;
+      text-transform: uppercase;
+    }
+    
+    .widget-heart {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 16px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .widget-footer {
+      font-size: 8px;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+    
+    /* Adaptation pour différentes tailles de widget */
+    @media (max-width: 200px) {
+      .countdown-main { font-size: 18px; }
+      .countdown-number { font-size: 14px; }
+      .widget-title { font-size: 12px; }
+    }
+    
+    @media (max-height: 150px) {
+      .countdown-details { grid-template-columns: repeat(4, 1fr); }
+      .countdown-item { font-size: 8px; }
+      .countdown-number { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="widget-heart">💖</div>
+    
+    <div class="widget-title">Reunited Countdown</div>
+    
+    <div class="countdown-display">
+      <div class="countdown-main" id="mainCountdown">--:--:--</div>
+      <div class="countdown-subtitle" id="subtitle">Chargement...</div>
+      
+      <div class="countdown-details">
+        <div class="countdown-item">
+          <span class="countdown-number" id="days">--</span>
+          <span class="countdown-label">jours</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-number" id="hours">--</span>
+          <span class="countdown-label">heures</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-number" id="minutes">--</span>
+          <span class="countdown-label">min</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-number" id="seconds">--</span>
+          <span class="countdown-label">sec</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="widget-footer">Touchez pour ouvrir</div>
+  </div>
+
+  <script>
+    // Configuration du widget
+    const CONFIG = {
+      targetDate: new Date(Date.now() + (2 * 60 * 1000)), // 2 minutes par défaut
+      updateInterval: 1000,
+      locale: 'fr'
+    };
+
+    // Récupération de la configuration depuis les paramètres URL
+    function getConfig() {
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get('target');
+      const locale = params.get('locale') || 'fr';
+      
+      if (target) {
+        CONFIG.targetDate = new Date(target);
+      }
+      CONFIG.locale = locale;
+      
+      // Traductions
+      const translations = {
+        fr: { days: 'jours', hours: 'heures', min: 'min', sec: 'sec', loading: 'Chargement...', finished: 'Terminé !' },
+        en: { days: 'days', hours: 'hours', min: 'min', sec: 'sec', loading: 'Loading...', finished: 'Finished!' },
+        id: { days: 'hari', hours: 'jam', min: 'mnt', sec: 'dtk', loading: 'Memuat...', finished: 'Selesai!' }
+      };
+      
+      return translations[locale] || translations.fr;
+    }
+
+    // Calcul du compte à rebours
+    function updateCountdown() {
+      const now = new Date();
+      const difference = CONFIG.targetDate - now;
+      const t = getConfig();
+      
+      if (difference <= 0) {
+        document.getElementById('mainCountdown').textContent = '00:00:00';
+        document.getElementById('subtitle').textContent = t.finished;
+        document.getElementById('days').textContent = '0';
+        document.getElementById('hours').textContent = '0';
+        document.getElementById('minutes').textContent = '0';
+        document.getElementById('seconds').textContent = '0';
+        return;
+      }
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+      
+      // Affichage principal (format compact)
+      const mainTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      document.getElementById('mainCountdown').textContent = mainTime;
+      
+      // Sous-titre avec jours si nécessaire
+      if (days > 0) {
+        document.getElementById('subtitle').textContent = `${days} ${t.days} restants`;
+      } else {
+        document.getElementById('subtitle').textContent = `Bientôt les retrouvailles`;
+      }
+      
+      // Détails
+      document.getElementById('days').textContent = days;
+      document.getElementById('hours').textContent = hours;
+      document.getElementById('minutes').textContent = minutes;
+      document.getElementById('seconds').textContent = seconds;
+      
+      // Mise à jour des labels
+      document.querySelector('.countdown-details .countdown-item:nth-child(1) .countdown-label').textContent = t.days;
+      document.querySelector('.countdown-details .countdown-item:nth-child(2) .countdown-label').textContent = t.hours;
+      document.querySelector('.countdown-details .countdown-item:nth-child(3) .countdown-label').textContent = t.min;
+      document.querySelector('.countdown-details .countdown-item:nth-child(4) .countdown-label').textContent = t.sec;
+    }
+
+    // Gestion du clic pour ouvrir l'application
+    document.addEventListener('click', () => {
+      if (window.parent !== window) {
+        // Dans un widget, envoyer un message au parent
+        window.parent.postMessage({
+          type: 'widget-click',
+          action: 'open-app',
+          url: '/Reunited/mobile.html'
+        }, '*');
+      } else {
+        // Ouvrir directement l'application
+        window.location.href = '/Reunited/mobile.html';
+      }
+    });
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+      getConfig();
+      updateCountdown();
+      setInterval(updateCountdown, CONFIG.updateInterval);
+    });
+
+    // Mise à jour automatique des données du widget
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.type === 'widget-update') {
+          CONFIG.targetDate = new Date(event.data.targetDate);
+          CONFIG.locale = event.data.locale || 'fr';
+          updateCountdown();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

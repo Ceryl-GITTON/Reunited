@@ -1,0 +1,9 @@
+# Icône temporaire créée
+# Pour créer l'icône finale :
+# 1. Ouvrez icon_generator.html dans un navigateur
+# 2. Faites une capture d'écran de l'icône
+# 3. Sauvegardez comme app_icon.png (512x512px)
+# 4. Lancez : flutter pub run flutter_launcher_icons:main
+
+# Ou utilisez cette icône emoji temporaire
+🎀💕🎀
