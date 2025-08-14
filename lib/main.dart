@@ -1,15 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pa  // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
-  Map<String, Map<String, dynamic>> get _timezones => {
-    'France': {
-      'name': '🇫🇷 France',
-      'offset': _getFranceOffset(), // Calcul dynamique été/hiver
-    },
-    'Indonesia': {
-      'name': '🇮🇩 Indonésie (Java)',
-      'offset': 7, // UTC+7
-    },
-  };er/services.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,11 +52,11 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
   Map<String, Map<String, dynamic>> get _timezones => {
     'France': {
-      'name': '🗼 France',
+      'name': '🇫🇷 France',
       'offset': _getFranceOffset(), // Calcul dynamique été/hiver
     },
     'Indonesia': {
-      'name': '�️ Indonésie (Java)',
+      'name': '🇮🇩 Indonésie (Java)',
       'offset': 7, // UTC+7
     },
   };
