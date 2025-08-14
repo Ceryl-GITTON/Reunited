@@ -1,0 +1,34 @@
+name: reunited_countdown
+description: A beautiful, customizable countdown widget for Flutter with multi-language support and timezone management. Perfect for romantic apps, event countdowns, and deadline tracking.
+version: 1.0.0
+homepage: https://github.com/Ceryl-GITTON/reunited_countdown_widget
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.2
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/
+
+topics:
+  - countdown
+  - timer
+  - widget
+  - localization
+  - romantic
