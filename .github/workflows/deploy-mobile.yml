@@ -24,11 +24,17 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.1'
+        flutter-version: '3.24.3'
         channel: 'stable'
 
     - name: Get dependencies
       run: flutter pub get
+
+    - name: Get package dependencies
+      run: |
+        cd packages/reunited_countdown
+        flutter pub get
+        cd ../..
 
     - name: Generate localizations
       run: flutter gen-l10n
