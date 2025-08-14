@@ -382,6 +382,14 @@
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         console.log(`PWA installation ${outcome}`);
+        
+        if (outcome === 'accepted') {
+          // Après installation, proposer l'ajout du widget
+          setTimeout(() => {
+            showWidgetProposal();
+          }, 2000);
+        }
+        
         deferredPrompt = null;
       }
       document.getElementById('pwaInstall').classList.remove('show');
@@ -390,6 +398,60 @@
     document.getElementById('pwaDismissBtn').addEventListener('click', () => {
       document.getElementById('pwaInstall').classList.remove('show');
     });
+
+    // Proposition d'ajout de widget
+    function showWidgetProposal() {
+      if ('serviceWorker' in navigator && 'widgets' in navigator) {
+        const widgetProposal = document.createElement('div');
+        widgetProposal.innerHTML = `
+          <div class="pwa-install show" style="background: rgba(255,107,157,0.95);">
+            <div class="pwa-content">
+              <img src="assets/app_icon.png" alt="Widget Icon" class="pwa-icon">
+              <div class="pwa-text">
+                <div class="pwa-title">Ajouter un widget</div>
+                <div class="pwa-subtitle">Widget de compte à rebours sur votre écran d'accueil</div>
+              </div>
+              <div class="pwa-buttons">
+                <button class="pwa-btn install" onclick="installWidget()">Ajouter Widget</button>
+                <button class="pwa-btn dismiss" onclick="this.parentElement.parentElement.parentElement.remove()">Plus tard</button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(widgetProposal);
+      }
+    }
+
+    // Installation du widget
+    async function installWidget() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.ready;
+          
+          // Envoyer les données du widget au service worker
+          if (registration.active) {
+            registration.active.postMessage({
+              type: 'widget-update',
+              data: {
+                targetDate: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+                locale: currentLang,
+                theme: 'romantic'
+              }
+            });
+          }
+        }
+        
+        // Instructions pour l'utilisateur
+        alert('🎉 Widget configuré ! Sur Android :\n1. Appui long sur l\'écran d\'accueil\n2. Sélectionner "Widgets"\n3. Chercher "Reunited Countdown"\n4. Glisser sur l\'écran d\'accueil');
+        
+        // Ouvrir la page widget dans un nouvel onglet pour test
+        window.open('/Reunited/widget.html?target=' + encodeURIComponent(new Date(Date.now() + 2 * 60 * 1000).toISOString()) + '&locale=' + currentLang, '_blank', 'width=300,height=200');
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'installation du widget:', error);
+        alert('❌ Impossible d\'installer le widget. Votre navigateur ne supporte peut-être pas cette fonctionnalité.');
+      }
+    }
 
     // Initialize language
     updateLanguage(currentLang);

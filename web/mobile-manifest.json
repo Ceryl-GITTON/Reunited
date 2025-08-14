@@ -73,5 +73,32 @@
         }
       ]
     }
+  ],
+  "widgets": [
+    {
+      "name": "Countdown Widget",
+      "short_name": "Countdown",
+      "description": "Widget de compte à rebours pour écran d'accueil",
+      "tag": "countdown-widget",
+      "template": "countdown-template",
+      "ms_ac_template": "adaptive-card-countdown",
+      "data": "/Reunited/api/widget-data.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "assets/widget-screenshot.png",
+          "sizes": "512x512",
+          "label": "Widget de compte à rebours"
+        }
+      ],
+      "icons": [
+        {
+          "src": "assets/favicon/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "auth": false,
+      "update": 60000
+    }
   ]
 }
