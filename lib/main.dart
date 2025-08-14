@@ -1,5 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import  // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
+  Map<String, Map<String, dynamic>> get _timezones => {
+    'France': {
+      'name': '🇫🇷 France',
+      'offset': _getFranceOffset(), // Calcul dynamique été/hiver
+    },
+    'Indonesia': {
+      'name': '🇮🇩 Indonésie (Java)',
+      'offset': 7, // UTC+7
+    },
+  };lutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +29,10 @@ class ReunitedCountdownApp extends StatelessWidget {
         primarySwatch: Colors.pink,
         useMaterial3: true,
         fontFamily: 'Roboto',
+        textTheme: const TextTheme().apply(
+          fontFamily: 'Roboto',
+          fontFamilyFallback: ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'],
+        ),
       ),
       home: const CountdownScreen(),
     );
