@@ -1,15 +1,37 @@
 # Reunited Countdown 💕
 
-Une application mobile Flutter qui affiche un compte à rebours précis jusqu'aux retrouvailles avec votre petite amie !
+Une application mobile Flutter multilingue qui affiche un compte à rebours précis jusqu'aux retrouvailles avec votre petite amie !
+
+## 🌐 **Applications Disponibles**
+
+### 📱 **Version Mobile** (Recommandée)
+**🚀 [Lancer l'app mobile](https://ceryl-gitton.github.io/Reunited/mobile/)**
+
+- ✨ Interface optimisée pour mobile et tablette
+- 📲 Installation PWA (Progressive Web App)
+- 🌍 Support multilingue (Français, Anglais, Indonésien)
+- 🎨 4 thèmes personnalisables
+- � Navigation fluide entre les démos
+- 💾 Sauvegarde automatique des préférences
+
+### 🖥️ **Version Desktop**
+**🌐 [Ouvrir la version desktop](https://ceryl-gitton.github.io/Reunited/)**
+
+- 💻 Interface adaptée aux grands écrans
+- 🗺️ Cartes interactives avec fuseaux horaires
+- ⚙️ Paramètres avancés
 
 ## Fonctionnalités
 
-- 📱 Compatible Android et iOS
-- ⏰ Compte à rebours en temps réel (jours, heures, minutes, secondes)
-- 💖 Interface avec animations de cœur qui bat
-- 🎨 Design élégant avec dégradé rose romantique
-- 📅 Sélecteur de date et heure pour personnaliser la date des retrouvailles
-- 🎉 Animation spéciale quand le compte à rebours arrive à zéro
+- 📱 **Multi-plateforme** : Web, Android, iOS, Windows, macOS, Linux
+- ⏰ **Compte à rebours précis** : Jours, heures, minutes, secondes en temps réel
+- 🌍 **Support multilingue** : Français, English, Bahasa Indonesia
+- 🎨 **Thèmes personnalisables** : Romantique, Élégant, Vibrant, Package Demo
+- 💖 **Animations fluides** : Cœurs qui battent, transitions élégantes
+- 🌐 **Fuseaux horaires** : France, Royaume-Uni, Indonésie, Local
+- 📅 **Configuration flexible** : Date et heure personnalisables
+- 🎉 **Célébrations** : Animations spéciales à l'arrivée à zéro
+- 💾 **Persistance** : Sauvegarde des préférences utilisateur
 
 ## Comment utiliser
 

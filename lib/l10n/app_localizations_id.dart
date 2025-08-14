@@ -58,19 +58,4 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get seconds => 'Detik';
-
-  @override
-  String get languageSettings => 'Bahasa';
-
-  @override
-  String get selectLanguage => 'Pilih Bahasa';
-
-  @override
-  String get english => 'English';
-
-  @override
-  String get french => 'Français';
-
-  @override
-  String get indonesian => 'Bahasa Indonesia';
 }

@@ -195,36 +195,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Seconds'**
   String get seconds;
-
-  /// Language settings menu title
-  ///
-  /// In en, this message translates to:
-  /// **'Language'**
-  String get languageSettings;
-
-  /// Title for language selection dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Select Language'**
-  String get selectLanguage;
-
-  /// English language name
-  ///
-  /// In en, this message translates to:
-  /// **'English'**
-  String get english;
-
-  /// French language name
-  ///
-  /// In en, this message translates to:
-  /// **'Français'**
-  String get french;
-
-  /// Indonesian language name
-  ///
-  /// In en, this message translates to:
-  /// **'Bahasa Indonesia'**
-  String get indonesian;
 }
 
 class _AppLocalizationsDelegate

@@ -1,0 +1,175 @@
+name: Deploy Mobile App to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lib/mobile_app.dart'
+      - 'web/mobile.html'
+      - 'packages/reunited_countdown/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.1'
+        channel: 'stable'
+
+    - name: Get dependencies
+      run: flutter pub get
+
+    - name: Generate localizations
+      run: flutter gen-l10n
+
+    - name: Build mobile web app
+      run: |
+        flutter build web \
+          --target lib/simple_mobile_app.dart \
+          --base-href /Reunited/mobile/ \
+          --release
+
+    - name: Copy mobile assets
+      run: |
+        # Copier les fichiers web personnalisés
+        cp web/mobile.html build/mobile/
+        cp web/mobile-manifest.json build/mobile/manifest.json
+        
+        # Copier les assets
+        cp -r assets build/mobile/
+        
+        # Créer le fichier .nojekyll pour GitHub Pages
+        touch build/mobile/.nojekyll
+
+    - name: Create mobile index redirect
+      run: |
+        cat > build/mobile/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=mobile.html">
+          <title>Redirecting to Reunited Countdown Mobile...</title>
+        </head>
+        <body>
+          <p>Redirecting to <a href="mobile.html">Reunited Countdown Mobile</a>...</p>
+        </body>
+        </html>
+        EOF
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/mobile
+        destination_dir: mobile
+        enable_jekyll: false
+        cname: reunited-mobile.pages.dev
+
+    - name: Update main GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Mettre à jour l'index principal pour inclure le lien mobile
+        cat > build/web/mobile-redirect.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Reunited Countdown Mobile</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              text-align: center;
+              padding: 50px;
+              background: linear-gradient(135deg, #ff6b9d, #e91e63);
+              color: white;
+              margin: 0;
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+            }
+            h1 {
+              font-size: 2.5em;
+              margin-bottom: 20px;
+              text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            }
+            p {
+              font-size: 1.2em;
+              margin-bottom: 30px;
+              opacity: 0.9;
+            }
+            .btn {
+              display: inline-block;
+              padding: 15px 30px;
+              background: white;
+              color: #e91e63;
+              text-decoration: none;
+              border-radius: 25px;
+              font-weight: bold;
+              font-size: 1.1em;
+              transition: all 0.3s ease;
+              box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+              margin: 10px;
+            }
+            .btn:hover {
+              transform: translateY(-3px);
+              box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            }
+            .features {
+              margin-top: 40px;
+              text-align: left;
+            }
+            .feature {
+              margin: 15px 0;
+              opacity: 0.9;
+            }
+            .feature::before {
+              content: "✨ ";
+              margin-right: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>📱 Reunited Countdown Mobile</h1>
+            <p>Votre application mobile de compte à rebours multilingue est prête !</p>
+            
+            <a href="mobile/" class="btn">🚀 Lancer l'app mobile</a>
+            <a href="../" class="btn">🖥️ Version desktop</a>
+            
+            <div class="features">
+              <div class="feature">Interface optimisée pour mobile</div>
+              <div class="feature">Support multilingue (FR/EN/ID)</div>
+              <div class="feature">Thèmes romantiques personnalisables</div>
+              <div class="feature">Installation PWA possible</div>
+              <div class="feature">Notifications push (bientôt)</div>
+            </div>
+          </div>
+        </body>
+        </html>
+        EOF
+
+    - name: Notification de déploiement
+      if: success()
+      run: |
+        echo "✅ Application mobile déployée avec succès !"
+        echo "🌐 URL: https://ceryl-gitton.github.io/Reunited/mobile/"
+        echo "📱 App mobile prête à l'installation"

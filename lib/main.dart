@@ -4,55 +4,19 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'l10n/app_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(const ReunitedCountdownApp());
 }
 
-class ReunitedCountdownApp extends StatefulWidget {
+class ReunitedCountdownApp extends StatelessWidget {
   const ReunitedCountdownApp({super.key});
-
-  @override
-  State<ReunitedCountdownApp> createState() => _ReunitedCountdownAppState();
-}
-
-class _ReunitedCountdownAppState extends State<ReunitedCountdownApp> {
-  Locale? _locale;
-
-  void _changeLanguage(Locale locale) {
-    setState(() {
-      _locale = locale;
-    });
-    _saveLanguagePreference(locale);
-  }
-
-  void _saveLanguagePreference(Locale locale) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language_code', locale.languageCode);
-  }
-
-  void _loadLanguagePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final languageCode = prefs.getString('language_code');
-    if (languageCode != null) {
-      setState(() {
-        _locale = Locale(languageCode);
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLanguagePreference();
-  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Reunited Countdown',
-      locale: _locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -73,15 +37,13 @@ class _ReunitedCountdownAppState extends State<ReunitedCountdownApp> {
           fontFamilyFallback: ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'],
         ),
       ),
-      home: CountdownScreen(onLanguageChange: _changeLanguage),
+      home: const CountdownScreen(),
     );
   }
 }
 
 class CountdownScreen extends StatefulWidget {
-  final Function(Locale) onLanguageChange;
-  
-  const CountdownScreen({super.key, required this.onLanguageChange});
+  const CountdownScreen({super.key});
 
   @override
   State<CountdownScreen> createState() => _CountdownScreenState();
@@ -294,8 +256,7 @@ class _CountdownScreenState extends State<CountdownScreen>
           title: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AppLocalizations.of(context)!.whereWillReunionTakePlace),
-              const SizedBox(width: 8),
+              Text('${AppLocalizations.of(context)!.whereWillReunionTakePlace} '),
               Image.asset(
                 'assets/globe_icon.png',
                 width: 20,
@@ -446,103 +407,6 @@ class _CountdownScreenState extends State<CountdownScreen>
     );
   }
 
-  Future<void> _showLanguageSelector() async {
-    final Map<String, Map<String, String>> languages = {
-      'en': {
-        'name': AppLocalizations.of(context)!.english,
-        'flag': '🇬🇧',
-      },
-      'fr': {
-        'name': AppLocalizations.of(context)!.french,
-        'flag': '🇫🇷',
-      },
-      'id': {
-        'name': AppLocalizations.of(context)!.indonesian,
-        'flag': '🇮🇩',
-      },
-    };
-
-    final String? selectedLanguage = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.language, color: Colors.pink),
-              const SizedBox(width: 8),
-              Text(AppLocalizations.of(context)!.selectLanguage),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: languages.entries.map((entry) {
-              final isSelected = Localizations.localeOf(context).languageCode == entry.key;
-              return ListTile(
-                leading: Text(
-                  entry.value['flag']!,
-                  style: const TextStyle(fontSize: 24),
-                ),
-                title: Text(entry.value['name']!),
-                trailing: isSelected 
-                  ? const Icon(Icons.check, color: Colors.pink)
-                  : null,
-                onTap: () => Navigator.of(context).pop(entry.key),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-
-    if (selectedLanguage != null) {
-      widget.onLanguageChange(Locale(selectedLanguage));
-    }
-  }
-
-  String _getCurrentLanguageFlag() {
-    final languageCode = Localizations.localeOf(context).languageCode;
-    switch (languageCode) {
-      case 'fr':
-        return '🇫🇷';
-      case 'id':
-        return '🇮🇩';
-      default:
-        return '🇬🇧';
-    }
-  }
-
-  Widget _buildFlagImage(String languageCode, {double size = 20}) {
-    switch (languageCode) {
-      case 'fr':
-        return Image.asset(
-          'assets/france_flag.png',
-          width: size,
-          height: size,
-          errorBuilder: (context, error, stackTrace) {
-            return Text('🇫🇷', style: TextStyle(fontSize: size));
-          },
-        );
-      case 'id':
-        return Image.asset(
-          'assets/indonesia_flag.png',
-          width: size,
-          height: size,
-          errorBuilder: (context, error, stackTrace) {
-            return Text('🇮🇩', style: TextStyle(fontSize: size));
-          },
-        );
-      default: // 'en' - utiliser l'image PNG du drapeau britannique
-        return Image.asset(
-          'assets/uk_flag.png',
-          width: size,
-          height: size,
-          errorBuilder: (context, error, stackTrace) {
-            return Text('🇬🇧', style: TextStyle(fontSize: size));
-          },
-        );
-    }
-  }
-
   @override
   void dispose() {
     _timer.cancel();
@@ -559,73 +423,6 @@ class _CountdownScreenState extends State<CountdownScreen>
     final seconds = _timeRemaining.inSeconds % 60;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          PopupMenuButton<String>(
-            icon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.language, color: Colors.white),
-                const SizedBox(width: 4),
-                _buildFlagImage(Localizations.localeOf(context).languageCode, size: 16),
-              ],
-            ),
-            onSelected: (String languageCode) {
-              widget.onLanguageChange(Locale(languageCode));
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'en',
-                child: Row(
-                  children: [
-                    _buildFlagImage('en', size: 24),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)!.english),
-                    if (Localizations.localeOf(context).languageCode == 'en')
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8),
-                        child: Icon(Icons.check, color: Colors.pink, size: 16),
-                      ),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'fr',
-                child: Row(
-                  children: [
-                    _buildFlagImage('fr', size: 24),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)!.french),
-                    if (Localizations.localeOf(context).languageCode == 'fr')
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8),
-                        child: Icon(Icons.check, color: Colors.pink, size: 16),
-                      ),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'id',
-                child: Row(
-                  children: [
-                    _buildFlagImage('id', size: 24),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)!.indonesian),
-                    if (Localizations.localeOf(context).languageCode == 'id')
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8),
-                        child: Icon(Icons.check, color: Colors.pink, size: 16),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

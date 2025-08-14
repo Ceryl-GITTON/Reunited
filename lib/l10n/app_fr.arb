@@ -14,10 +14,5 @@
   "minute": "Minute",
   "minutes": "Minutes",
   "second": "Seconde",
-  "seconds": "Secondes",
-  "languageSettings": "Langue",
-  "selectLanguage": "Choisir la langue",
-  "english": "English",
-  "french": "Français",
-  "indonesian": "Bahasa Indonesia"
+  "seconds": "Secondes"
 }

@@ -68,25 +68,5 @@
   "seconds": "Seconds",
   "@seconds": {
     "description": "Plural form of second"
-  },
-  "languageSettings": "Language",
-  "@languageSettings": {
-    "description": "Language settings menu title"
-  },
-  "selectLanguage": "Select Language",
-  "@selectLanguage": {
-    "description": "Title for language selection dialog"
-  },
-  "english": "English",
-  "@english": {
-    "description": "English language name"
-  },
-  "french": "Français",
-  "@french": {
-    "description": "French language name"
-  },
-  "indonesian": "Bahasa Indonesia",
-  "@indonesian": {
-    "description": "Indonesian language name"
   }
 }

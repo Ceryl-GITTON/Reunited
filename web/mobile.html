@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  
+  <!-- SEO et métadonnées -->
+  <title>Reunited Countdown Mobile | Compte à rebours pour vos moments précieux</title>
+  <meta name="description" content="Application mobile de compte à rebours multilingue (Français, Anglais, Indonésien) avec thèmes personnalisables. Parfait pour vos événements spéciaux !">
+  <meta name="keywords" content="countdown, mobile, flutter, multilingual, français, english, indonesia, romantic, elegant">
+  <meta name="author" content="Reunited Countdown Team">
+  
+  <!-- Optimisation mobile -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Reunited Countdown">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ceryl-gitton.github.io/Reunited/mobile.html">
+  <meta property="og:title" content="Reunited Countdown Mobile">
+  <meta property="og:description" content="Compte à rebours mobile multilingue avec thèmes romantiques">
+  <meta property="og:image" content="https://ceryl-gitton.github.io/Reunited/assets/app_icon.png">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://ceryl-gitton.github.io/Reunited/mobile.html">
+  <meta property="twitter:title" content="Reunited Countdown Mobile">
+  <meta property="twitter:description" content="Compte à rebours mobile multilingue avec thèmes romantiques">
+  <meta property="twitter:image" content="https://ceryl-gitton.github.io/Reunited/assets/app_icon.png">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="web/manifest.json">
+  
+  <!-- Styles mobile optimisés -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(135deg, #ff6b9d, #e91e63, #ad1457);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+    
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ff6b9d, #e91e63, #ad1457);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+    }
+    
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .app-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .loading-text {
+      color: white;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .loading-subtitle {
+      color: rgba(255,255,255,0.8);
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-left: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .language-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .lang-btn {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 15px;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .lang-btn:hover, .lang-btn.active {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    
+    #flutter_loading_indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+    }
+    
+    .flutter-app {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+    
+    /* PWA Installation prompt */
+    .pwa-install {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.95);
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: none;
+      backdrop-filter: blur(10px);
+      z-index: 999;
+    }
+    
+    .pwa-install.show {
+      display: block;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .pwa-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .pwa-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+    
+    .pwa-text {
+      flex: 1;
+    }
+    
+    .pwa-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 3px;
+    }
+    
+    .pwa-subtitle {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .pwa-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .pwa-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .pwa-btn.install {
+      background: #e91e63;
+      color: white;
+    }
+    
+    .pwa-btn.install:hover {
+      background: #ad1457;
+      transform: translateY(-1px);
+    }
+    
+    .pwa-btn.dismiss {
+      background: #f5f5f5;
+      color: #666;
+    }
+    
+    .pwa-btn.dismiss:hover {
+      background: #e0e0e0;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 480px) {
+      .app-icon {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .loading-text {
+        font-size: 20px;
+      }
+      
+      .language-selector {
+        top: 15px;
+        right: 15px;
+      }
+      
+      .pwa-install {
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+      }
+      
+      .pwa-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+      
+      .pwa-buttons {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="language-selector">
+      <a href="#" class="lang-btn" data-lang="fr">🇫🇷 FR</a>
+      <a href="#" class="lang-btn" data-lang="en">🇬🇧 EN</a>
+      <a href="#" class="lang-btn" data-lang="id">🇮🇩 ID</a>
+    </div>
+    
+    <img src="assets/app_icon.png" alt="Reunited Countdown" class="app-icon">
+    <div class="loading-text" id="loadingText">Reunited Countdown</div>
+    <div class="loading-subtitle" id="loadingSubtitle">Votre app mobile de compte à rebours</div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- PWA Installation Prompt -->
+  <div class="pwa-install" id="pwaInstall">
+    <div class="pwa-content">
+      <img src="assets/app_icon.png" alt="App Icon" class="pwa-icon">
+      <div class="pwa-text">
+        <div class="pwa-title" id="pwaTitle">Installer l'application</div>
+        <div class="pwa-subtitle" id="pwaSubtitle">Accès rapide depuis votre écran d'accueil</div>
+      </div>
+      <div class="pwa-buttons">
+        <button class="pwa-btn install" id="pwaInstallBtn">Installer</button>
+        <button class="pwa-btn dismiss" id="pwaDismissBtn">Plus tard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flutter App Container -->
+  <div id="flutter_target"></div>
+
+  <!-- Scripts -->
+  <script>
+    // Traductions
+    const translations = {
+      fr: {
+        loadingTitle: 'Reunited Countdown',
+        loadingSubtitle: 'Votre app mobile de compte à rebours',
+        pwaTitle: 'Installer l\'application',
+        pwaSubtitle: 'Accès rapide depuis votre écran d\'accueil',
+        installBtn: 'Installer',
+        dismissBtn: 'Plus tard'
+      },
+      en: {
+        loadingTitle: 'Reunited Countdown',
+        loadingSubtitle: 'Your mobile countdown app',
+        pwaTitle: 'Install the app',
+        pwaSubtitle: 'Quick access from your home screen',
+        installBtn: 'Install',
+        dismissBtn: 'Later'
+      },
+      id: {
+        loadingTitle: 'Reunited Countdown',
+        loadingSubtitle: 'Aplikasi hitung mundur mobile Anda',
+        pwaTitle: 'Instal aplikasi',
+        pwaSubtitle: 'Akses cepat dari layar beranda Anda',
+        installBtn: 'Instal',
+        dismissBtn: 'Nanti'
+      }
+    };
+
+    // Language management
+    let currentLang = localStorage.getItem('preferred-language') || 'fr';
+    
+    function updateLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('preferred-language', lang);
+      
+      const trans = translations[lang];
+      document.getElementById('loadingText').textContent = trans.loadingTitle;
+      document.getElementById('loadingSubtitle').textContent = trans.loadingSubtitle;
+      document.getElementById('pwaTitle').textContent = trans.pwaTitle;
+      document.getElementById('pwaSubtitle').textContent = trans.pwaSubtitle;
+      document.getElementById('pwaInstallBtn').textContent = trans.installBtn;
+      document.getElementById('pwaDismissBtn').textContent = trans.dismissBtn;
+      
+      // Update active language button
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+    }
+
+    // Language selector
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateLanguage(btn.dataset.lang);
+      });
+    });
+
+    // PWA Installation
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      setTimeout(() => {
+        document.getElementById('pwaInstall').classList.add('show');
+      }, 3000);
+    });
+
+    document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`PWA installation ${outcome}`);
+        deferredPrompt = null;
+      }
+      document.getElementById('pwaInstall').classList.remove('show');
+    });
+
+    document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+      document.getElementById('pwaInstall').classList.remove('show');
+    });
+
+    // Initialize language
+    updateLanguage(currentLang);
+
+    // Flutter loading
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+      }, 2000);
+    });
+
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('flutter_service_worker.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+
+    // Prevent zoom on mobile
+    document.addEventListener('gesturestart', function (e) {
+      e.preventDefault();
+    });
+
+    // Handle back button on Android
+    window.addEventListener('popstate', function(e) {
+      if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        window.flutter_inappwebview.callHandler('backPressed');
+      }
+    });
+  </script>
+
+  <!-- Flutter Web Bootstrap -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

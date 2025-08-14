@@ -57,19 +57,4 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get seconds => 'Secondes';
-
-  @override
-  String get languageSettings => 'Langue';
-
-  @override
-  String get selectLanguage => 'Choisir la langue';
-
-  @override
-  String get english => 'English';
-
-  @override
-  String get french => 'Français';
-
-  @override
-  String get indonesian => 'Bahasa Indonesia';
 }
