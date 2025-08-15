@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">Reunited Countdown</string>
     <string name="widget_description">Compte à rebours pour nos retrouvailles</string>
+    <string name="widget_title">Retrouvailles</string>
 </resources>
