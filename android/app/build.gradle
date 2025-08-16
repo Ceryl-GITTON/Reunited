@@ -29,8 +29,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.reunited.countdown.reunited_countdown"
-    compileSdk 35
-    ndkVersion "27.0.12077973"
+    compileSdkVersion 34
+    ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -47,15 +47,10 @@ android {
 
     defaultConfig {
         applicationId "com.reunited.countdown.reunited_countdown"
-        minSdkVersion 21
-        targetSdkVersion 35
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
-        // Force Flutter embedding v2
-        manifestPlaceholders = [
-            'flutterEmbedding': 2
-        ]
     }
 
     buildTypes {
