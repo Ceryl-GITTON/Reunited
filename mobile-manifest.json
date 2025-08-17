@@ -1,0 +1,104 @@
+{
+  "name": "Reunited Countdown Mobile",
+  "short_name": "Reunited Mobile",
+  "start_url": "/Reunited/mobile.html",
+  "display": "standalone",
+  "background_color": "#e91e63",
+  "theme_color": "#e91e63",
+  "orientation": "portrait-primary",
+  "categories": ["utilities", "lifestyle"],
+  "lang": "fr",
+  "dir": "ltr",
+  "description": "Application mobile de compte à rebours multilingue avec thèmes personnalisables",
+  "screenshots": [
+    {
+      "src": "assets/app_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "icons": [
+    {
+      "src": "assets/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/favicon/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/favicon/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/Reunited/",
+  "id": "reunited-countdown-mobile",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "shortcuts": [
+    {
+      "name": "Nouveau compte à rebours",
+      "short_name": "Nouveau",
+      "description": "Créer un nouveau compte à rebours",
+      "url": "/Reunited/mobile.html?action=new",
+      "icons": [
+        {
+          "src": "assets/favicon/favicon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Countdown Widget",
+      "short_name": "Countdown",
+      "description": "Widget de compte à rebours pour écran d'accueil",
+      "tag": "countdown-widget",
+      "template": "countdown-template",
+      "ms_ac_template": "adaptive-card-countdown",
+      "data": "/Reunited/api/widget-data.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "assets/widget-screenshot.png",
+          "sizes": "512x512",
+          "label": "Widget de compte à rebours"
+        }
+      ],
+      "icons": [
+        {
+          "src": "assets/favicon/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "auth": false,
+      "update": 60000
+    }
+  ]
+}
