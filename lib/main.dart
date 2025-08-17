@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
+import 'widget_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialise le service de widget seulement sur mobile
+  if (Platform.isAndroid || Platform.isIOS) {
+    await WidgetService.initialize();
+  }
+  
   runApp(const ReunitedCountdownApp());
 }
 
@@ -190,6 +199,126 @@ class _CountdownScreenState extends State<CountdownScreen>
     _startAnimations();
     _loadReunionDate();
     _startTimer();
+    
+    // Initialise et démarre le service de widget
+    _initializeWidgetService();
+  }
+
+  void _initializeWidgetService() async {
+    // Seulement sur mobile
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Démarre la mise à jour automatique du widget
+      WidgetService.startAutoUpdate();
+      
+      // Met à jour le widget immédiatement
+      await WidgetService.updateWidget();
+    }
+  }
+  
+  void _showWidgetDialog() async {
+    // Vérifie si les widgets sont supportés
+    final isSupported = await WidgetService.isWidgetSupported();
+    
+    if (!isSupported) {
+      _showErrorDialog('Les widgets ne sont pas supportés sur cet appareil.');
+      return;
+    }
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.widgets, color: Colors.pink[600]),
+              const SizedBox(width: 8),
+              const Text('Widget d\'écran d\'accueil'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ajoutez un widget sur votre écran d\'accueil pour voir le compte à rebours sans ouvrir l\'application!',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.pink[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.pink[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.pink[600], size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Instructions:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('1. Appuyez sur "Ajouter Widget"'),
+                    const Text('2. Maintenez appuyé sur l\'écran d\'accueil'),
+                    const Text('3. Sélectionnez "Widgets"'),
+                    const Text('4. Cherchez "Reunited Countdown"'),
+                    const Text('5. Glissez le widget sur l\'écran'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Fermer'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await WidgetService.openWidgetSettings();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink[600],
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Ajouter Widget'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.error, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Erreur'),
+            ],
+          ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _startAnimations() {
@@ -438,6 +567,10 @@ class _CountdownScreenState extends State<CountdownScreen>
     _timer.cancel();
     _heartController.dispose();
     _pulseController.dispose();
+    
+    // Arrête le service de widget
+    WidgetService.stopAutoUpdate();
+    
     super.dispose();
   }
 
@@ -703,6 +836,15 @@ class _CountdownScreenState extends State<CountdownScreen>
           ),
         ),
       ),
+      floatingActionButton: Platform.isAndroid || Platform.isIOS ? FloatingActionButton(
+        onPressed: _showWidgetDialog,
+        backgroundColor: Colors.pink[600],
+        child: const Icon(
+          Icons.widgets,
+          color: Colors.white,
+        ),
+        tooltip: 'Ajouter widget à l\'écran d\'accueil',
+      ) : null,
     );
   }
 
