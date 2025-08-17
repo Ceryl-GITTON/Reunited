@@ -10,13 +10,27 @@ void main() {
   runApp(const ReunitedCountdownApp());
 }
 
-class ReunitedCountdownApp extends StatelessWidget {
+class ReunitedCountdownApp extends StatefulWidget {
   const ReunitedCountdownApp({super.key});
+
+  @override
+  State<ReunitedCountdownApp> createState() => _ReunitedCountdownAppState();
+}
+
+class _ReunitedCountdownAppState extends State<ReunitedCountdownApp> {
+  Locale _locale = const Locale('fr'); // Défaut français
+
+  void _changeLanguage(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Reunited Countdown',
+      locale: _locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -37,13 +51,15 @@ class ReunitedCountdownApp extends StatelessWidget {
           fontFamilyFallback: ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'],
         ),
       ),
-      home: const CountdownScreen(),
+      home: CountdownScreen(onLanguageChange: _changeLanguage),
     );
   }
 }
 
 class CountdownScreen extends StatefulWidget {
-  const CountdownScreen({super.key});
+  final Function(Locale) onLanguageChange;
+  
+  const CountdownScreen({super.key, required this.onLanguageChange});
 
   @override
   State<CountdownScreen> createState() => _CountdownScreenState();
@@ -58,6 +74,21 @@ class _CountdownScreenState extends State<CountdownScreen>
   late Animation<double> _pulseAnimation;
   late AnimationController _heartController;
   late Animation<double> _heartAnimation;
+  
+  // Méthode pour obtenir le drapeau de la langue actuelle
+  String _getCurrentLanguageFlag() {
+    final currentLocale = Localizations.localeOf(context);
+    switch (currentLocale.languageCode) {
+      case 'fr':
+        return 'assets/france_flag.png';
+      case 'en':
+        return 'assets/uk_flag.png';
+      case 'id':
+        return 'assets/indonesia_flag.png';
+      default:
+        return 'assets/france_flag.png'; // Par défaut
+    }
+  }
   
   // Fuseaux horaires avec leurs décalages UTC
   String _selectedTimezone = 'Indonesia'; // Par défaut Indonésie
@@ -433,11 +464,73 @@ class _CountdownScreenState extends State<CountdownScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Header avec titre
+              // Header avec titre et sélecteur de langue
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
+                    // Bouton de sélection de langue
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        PopupMenuButton<Locale>(
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.asset(
+                              _getCurrentLanguageFlag(),
+                              width: 28,
+                              height: 20,
+                            ),
+                          ),
+                          onSelected: widget.onLanguageChange,
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: const Locale('fr'),
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    'assets/france_flag.png',
+                                    width: 24,
+                                    height: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Français'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: const Locale('en'),
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    'assets/uk_flag.png',
+                                    width: 24,
+                                    height: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('English'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: const Locale('id'),
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    'assets/indonesia_flag.png',
+                                    width: 24,
+                                    height: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Bahasa Indonesia'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
                     AnimatedBuilder(
                       animation: _heartAnimation,
                       builder: (context, child) {
