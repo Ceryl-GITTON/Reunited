@@ -10,13 +10,13 @@ import 'timezone_config.dart';
 class ReunitedCountdown extends StatefulWidget {
   /// Configuration for the countdown widget
   final CountdownConfig config;
-  
+
   /// Whether to show the language selector
   final bool showLanguageSelector;
-  
+
   /// Whether to show the timezone selector
   final bool showTimezoneSelector;
-  
+
   /// Whether to allow date modification
   final bool allowDateModification;
 
@@ -41,7 +41,7 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
   late Animation<double> _pulseAnimation;
   late AnimationController _heartController;
   late Animation<double> _heartAnimation;
-  
+
   String _selectedTimezone = 'France';
   late CountdownConfig _currentConfig;
 
@@ -51,7 +51,7 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
     _currentConfig = widget.config;
     _selectedTimezone = widget.config.timezone;
     _reunionDate = widget.config.targetDate;
-    
+
     _initializeAnimations();
     _loadSavedData();
     _startTimer();
@@ -59,7 +59,7 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
 
   void _initializeAnimations() {
     final theme = _currentConfig.theme ?? CountdownThemeData.romantic;
-    
+
     if (theme.enableHeartAnimation) {
       _heartController = AnimationController(
         duration: theme.animationDuration,
@@ -74,10 +74,11 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
       ));
       _heartController.repeat(reverse: true);
     }
-    
+
     if (theme.enablePulseAnimation) {
       _pulseController = AnimationController(
-        duration: Duration(milliseconds: theme.animationDuration.inMilliseconds * 2),
+        duration:
+            Duration(milliseconds: theme.animationDuration.inMilliseconds * 2),
         vsync: this,
       );
       _pulseAnimation = Tween<double>(
@@ -93,14 +94,15 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
 
   Future<void> _loadSavedData() async {
     if (!widget.config.savePreferences) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
-    
+
     final savedTimezone = prefs.getString('reunited_countdown_timezone');
-    if (savedTimezone != null && TimezoneConfig.availableTimezones.contains(savedTimezone)) {
+    if (savedTimezone != null &&
+        TimezoneConfig.availableTimezones.contains(savedTimezone)) {
       _selectedTimezone = savedTimezone;
     }
-    
+
     final savedDateString = prefs.getString('reunited_countdown_date');
     if (savedDateString != null) {
       try {
@@ -109,18 +111,19 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
         _reunionDate = widget.config.targetDate;
       }
     }
-    
+
     _updateCountdown();
   }
 
   Future<void> _saveData() async {
     if (!widget.config.savePreferences) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('reunited_countdown_timezone', _selectedTimezone);
-    
+
     if (_reunionDate != null) {
-      await prefs.setString('reunited_countdown_date', _reunionDate!.toIso8601String());
+      await prefs.setString(
+          'reunited_countdown_date', _reunionDate!.toIso8601String());
     }
   }
 
@@ -134,17 +137,20 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
     if (_reunionDate != null) {
       final now = DateTime.now();
       final localOffset = TimezoneConfig.getTimezoneOffset('Local');
-      final destinationOffset = TimezoneConfig.getTimezoneOffset(_selectedTimezone);
+      final destinationOffset =
+          TimezoneConfig.getTimezoneOffset(_selectedTimezone);
       final offsetDifference = localOffset - destinationOffset;
-      
-      final reunionInMyTimezone = _reunionDate!.add(Duration(hours: offsetDifference));
+
+      final reunionInMyTimezone =
+          _reunionDate!.add(Duration(hours: offsetDifference));
       final difference = reunionInMyTimezone.difference(now);
-      
+
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
       });
-      
-      if (_timeRemaining == Duration.zero && widget.config.onCountdownComplete != null) {
+
+      if (_timeRemaining == Duration.zero &&
+          widget.config.onCountdownComplete != null) {
         widget.config.onCountdownComplete!();
       }
     }
@@ -171,9 +177,7 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
               children: TimezoneConfig.availableTimezones.map((timezone) {
                 return ListTile(
                   title: Text(TimezoneConfig.getTimezoneDisplayName(
-                    timezone, 
-                    _currentConfig.locale.languageCode
-                  )),
+                      timezone, _currentConfig.locale.languageCode)),
                   onTap: () => Navigator.of(context).pop(timezone),
                 );
               }).toList(),
@@ -236,14 +240,14 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
           pickedTime.hour,
           pickedTime.minute,
         );
-        
+
         setState(() {
           _reunionDate = reunionDateTime;
         });
-        
+
         _saveData();
         _updateCountdown();
-        
+
         if (widget.config.onConfigChanged != null) {
           widget.config.onConfigChanged!(_currentConfig.copyWith(
             targetDate: reunionDateTime,
@@ -355,7 +359,8 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
                       builder: (context, child) {
                         return Transform.scale(
                           scale: _pulseAnimation.value,
-                          child: _buildCountdownCard(theme, days, hours, minutes, seconds),
+                          child: _buildCountdownCard(
+                              theme, days, hours, minutes, seconds),
                         );
                       },
                     )
@@ -380,7 +385,8 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.gradientColors.last,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
@@ -393,7 +399,8 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
     );
   }
 
-  Widget _buildCountdownCard(CountdownThemeData theme, int days, int hours, int minutes, int seconds) {
+  Widget _buildCountdownCard(
+      CountdownThemeData theme, int days, int hours, int minutes, int seconds) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(30),
@@ -436,10 +443,14 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildTimeCard(days, _getLocalizedTimeLabel(days, 'day'), theme),
-                    _buildTimeCard(hours, _getLocalizedTimeLabel(hours, 'hour'), theme),
-                    _buildTimeCard(minutes, _getLocalizedTimeLabel(minutes, 'minute'), theme),
-                    _buildTimeCard(seconds, _getLocalizedTimeLabel(seconds, 'second'), theme),
+                    _buildTimeCard(
+                        days, _getLocalizedTimeLabel(days, 'day'), theme),
+                    _buildTimeCard(
+                        hours, _getLocalizedTimeLabel(hours, 'hour'), theme),
+                    _buildTimeCard(minutes,
+                        _getLocalizedTimeLabel(minutes, 'minute'), theme),
+                    _buildTimeCard(seconds,
+                        _getLocalizedTimeLabel(seconds, 'second'), theme),
                   ],
                 ),
                 const SizedBox(height: 30),
@@ -457,10 +468,8 @@ class _ReunitedCountdownState extends State<ReunitedCountdown>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        TimezoneConfig.getTimezoneDisplayName(
-                          _selectedTimezone, 
-                          _currentConfig.locale.languageCode
-                        ),
+                        TimezoneConfig.getTimezoneDisplayName(_selectedTimezone,
+                            _currentConfig.locale.languageCode),
                         style: TextStyle(
                           fontSize: 14,
                           color: theme.secondaryTextColor.withOpacity(0.8),

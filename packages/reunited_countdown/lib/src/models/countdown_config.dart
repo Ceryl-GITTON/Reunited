@@ -4,22 +4,22 @@ import 'package:flutter/material.dart';
 class CountdownConfig {
   /// The target date for the countdown
   final DateTime targetDate;
-  
+
   /// The timezone where the reunion will take place
   final String timezone;
-  
+
   /// The locale for text localization
   final Locale locale;
-  
+
   /// Whether to save preferences locally
   final bool savePreferences;
-  
+
   /// Custom theme configuration
   final CountdownThemeData? theme;
-  
+
   /// Callback when the countdown reaches zero
   final VoidCallback? onCountdownComplete;
-  
+
   /// Callback when user changes settings
   final Function(CountdownConfig)? onConfigChanged;
 
@@ -58,20 +58,20 @@ class CountdownConfig {
 class CountdownThemeData {
   /// Primary gradient colors
   final List<Color> gradientColors;
-  
+
   /// Text colors
   final Color primaryTextColor;
   final Color secondaryTextColor;
-  
+
   /// Card styling
   final Color cardBackgroundColor;
   final Color cardBorderColor;
   final double cardBorderRadius;
-  
+
   /// Icon styling
   final Color iconColor;
   final double iconSize;
-  
+
   /// Animation settings
   final Duration animationDuration;
   final bool enableHeartAnimation;
@@ -97,7 +97,7 @@ class CountdownThemeData {
 
   /// Predefined romantic theme
   static const CountdownThemeData romantic = CountdownThemeData();
-  
+
   /// Predefined elegant theme
   static const CountdownThemeData elegant = CountdownThemeData(
     gradientColors: [
@@ -108,7 +108,7 @@ class CountdownThemeData {
     secondaryTextColor: Color(0xFF2C3E50),
     cardBorderColor: Color(0xFF708090),
   );
-  
+
   /// Predefined vibrant theme
   static const CountdownThemeData vibrant = CountdownThemeData(
     gradientColors: [

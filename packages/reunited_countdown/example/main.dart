@@ -86,7 +86,7 @@ class ThemeExamples extends StatelessWidget {
               theme: CountdownThemeData.romantic,
             ),
           ),
-          
+
           // Elegant theme
           ReunitedCountdown(
             config: CountdownConfig(
@@ -94,7 +94,7 @@ class ThemeExamples extends StatelessWidget {
               theme: CountdownThemeData.elegant,
             ),
           ),
-          
+
           // Vibrant theme
           ReunitedCountdown(
             config: CountdownConfig(
@@ -102,7 +102,7 @@ class ThemeExamples extends StatelessWidget {
               theme: CountdownThemeData.vibrant,
             ),
           ),
-          
+
           // Custom theme
           ReunitedCountdown(
             config: CountdownConfig(

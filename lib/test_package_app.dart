@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:reunited_countdown_package/reunited_countdown.dart';
+import 'package:reunited_countdown/reunited_countdown.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 void main() {
   runApp(const PackageTestApp());
@@ -53,62 +53,73 @@ class TestHomePage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          
+
           // Test 1: Thèmes prédéfinis
           _buildTestCard(
             context,
             '🎨 Predefined Themes',
             'Test all 3 predefined themes with different configurations',
-            () => Navigator.push(context, MaterialPageRoute(
-              builder: (context) => const ThemeTestScreen(),
-            )),
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ThemeTestScreen(),
+                )),
           ),
-          
+
           // Test 2: Configurations avancées
           _buildTestCard(
             context,
             '⚙️ Advanced Config',
             'Test custom themes, animations, and callbacks',
-            () => Navigator.push(context, MaterialPageRoute(
-              builder: (context) => const AdvancedTestScreen(),
-            )),
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdvancedTestScreen(),
+                )),
           ),
-          
+
           // Test 3: Fuseaux horaires
           _buildTestCard(
             context,
             '🌍 Timezone Tests',
             'Test different timezones and DST calculations',
-            () => Navigator.push(context, MaterialPageRoute(
-              builder: (context) => const TimezoneTestScreen(),
-            )),
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TimezoneTestScreen(),
+                )),
           ),
-          
+
           // Test 4: Performance
           _buildTestCard(
             context,
             '⚡ Performance Test',
             'Test multiple widgets and memory usage',
-            () => Navigator.push(context, MaterialPageRoute(
-              builder: (context) => const PerformanceTestScreen(),
-            )),
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PerformanceTestScreen(),
+                )),
           ),
-          
+
           // Test 5: Test rapide
           _buildTestCard(
             context,
             '🚀 Quick Demo',
             'Simple countdown demo in 30 seconds',
-            () => Navigator.push(context, MaterialPageRoute(
-              builder: (context) => const QuickDemoScreen(),
-            )),
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const QuickDemoScreen(),
+                )),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTestCard(BuildContext context, String title, String description, VoidCallback onTap) {
+  Widget _buildTestCard(BuildContext context, String title, String description,
+      VoidCallback onTap) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: ListTile(
@@ -164,7 +175,8 @@ class _ThemeTestScreenState extends State<ThemeTestScreen> {
             targetDate: targetDate,
             timezone: 'France',
             theme: CountdownThemeData.romantic,
-            onCountdownComplete: () => _showResult('Romantic theme test completed! 💖'),
+            onCountdownComplete: () =>
+                _showResult('Romantic theme test completed! 💖'),
           ),
         );
       case 1:
@@ -173,7 +185,8 @@ class _ThemeTestScreenState extends State<ThemeTestScreen> {
             targetDate: targetDate,
             timezone: 'Indonesia',
             theme: CountdownThemeData.elegant,
-            onCountdownComplete: () => _showResult('Elegant theme test completed! ✨'),
+            onCountdownComplete: () =>
+                _showResult('Elegant theme test completed! ✨'),
           ),
         );
       case 2:
@@ -182,7 +195,8 @@ class _ThemeTestScreenState extends State<ThemeTestScreen> {
             targetDate: targetDate,
             timezone: 'Local',
             theme: CountdownThemeData.vibrant,
-            onCountdownComplete: () => _showResult('Vibrant theme test completed! 🎉'),
+            onCountdownComplete: () =>
+                _showResult('Vibrant theme test completed! 🎉'),
           ),
         );
       default:
@@ -213,7 +227,11 @@ class AdvancedTestScreen extends StatelessWidget {
           targetDate: targetDate,
           timezone: 'France',
           theme: const CountdownThemeData(
-            gradientColors: [Color(0xFF4A90E2), Color(0xFF7B68EE), Color(0xFF9966CC)],
+            gradientColors: [
+              Color(0xFF4A90E2),
+              Color(0xFF7B68EE),
+              Color(0xFF9966CC)
+            ],
             primaryTextColor: Colors.white,
             secondaryTextColor: Color(0xFF2C3E50),
             cardBorderRadius: 30.0,
@@ -263,10 +281,12 @@ class _TimezoneTestScreenState extends State<TimezoneTestScreen> {
         actions: [
           DropdownButton<String>(
             value: _currentTimezone,
-            items: _timezones.map((tz) => DropdownMenuItem(
-              value: tz,
-              child: Text(tz),
-            )).toList(),
+            items: _timezones
+                .map((tz) => DropdownMenuItem(
+                      value: tz,
+                      child: Text(tz),
+                    ))
+                .toList(),
             onChanged: (value) {
               if (value != null) {
                 setState(() {
@@ -285,7 +305,9 @@ class _TimezoneTestScreenState extends State<TimezoneTestScreen> {
           theme: CountdownThemeData.romantic,
           onCountdownComplete: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Timezone $_currentTimezone test completed! 🌍')),
+              SnackBar(
+                  content:
+                      Text('Timezone $_currentTimezone test completed! 🌍')),
             );
           },
         ),

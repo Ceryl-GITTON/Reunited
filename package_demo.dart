@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../packages/reunited_countdown/lib/reunited_countdown.dart';
+import 'package:reunited_countdown/reunited_countdown.dart';
 
 void main() {
   runApp(const ReunitedCountdownDemo());
@@ -37,13 +37,13 @@ class PackageDemoScreen extends StatelessWidget {
         children: [
           // Demo 1: Basic usage
           _buildBasicDemo(),
-          
+
           // Demo 2: Elegant theme
           _buildElegantDemo(),
-          
+
           // Demo 3: Vibrant theme
           _buildVibrantDemo(),
-          
+
           // Demo 4: Custom theme
           _buildCustomDemo(),
         ],
@@ -53,7 +53,7 @@ class PackageDemoScreen extends StatelessWidget {
 
   Widget _buildBasicDemo() {
     final targetDate = DateTime.now().add(const Duration(days: 30));
-    
+
     return ReunitedCountdown(
       config: CountdownConfig(
         targetDate: targetDate,
@@ -69,7 +69,7 @@ class PackageDemoScreen extends StatelessWidget {
 
   Widget _buildElegantDemo() {
     final targetDate = DateTime.now().add(const Duration(days: 7));
-    
+
     return ReunitedCountdown(
       config: CountdownConfig(
         targetDate: targetDate,
@@ -85,7 +85,7 @@ class PackageDemoScreen extends StatelessWidget {
 
   Widget _buildVibrantDemo() {
     final targetDate = DateTime.now().add(const Duration(days: 14));
-    
+
     return ReunitedCountdown(
       config: CountdownConfig(
         targetDate: targetDate,
@@ -101,7 +101,7 @@ class PackageDemoScreen extends StatelessWidget {
 
   Widget _buildCustomDemo() {
     final targetDate = DateTime.now().add(const Duration(days: 21));
-    
+
     return ReunitedCountdown(
       config: CountdownConfig(
         targetDate: targetDate,
