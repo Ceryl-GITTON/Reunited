@@ -1,0 +1,47 @@
+name: reunited_countdown_app
+description: Un widget de compte à rebours pour savoir le temps restant avant de retrouver sa petite amie
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  intl: any
+  shared_preferences: ^2.2.2
+  
+  # Conditionnel : home_widget seulement sur mobile
+  home_widget:
+    version: ^0.6.0
+    platforms:
+      - android
+      - ios
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/favicon/
+
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21
