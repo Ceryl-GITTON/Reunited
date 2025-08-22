@@ -205,6 +205,21 @@ class _CountdownScreenState extends State<CountdownScreen>
     _pulseController.repeat(reverse: true);
   }
 
+  // Formate la date selon la langue actuelle
+  String _formatDateTimeByLanguage(DateTime dateTime) {
+    final currentLocale = Localizations.localeOf(context);
+    switch (currentLocale.languageCode) {
+      case 'fr':
+        return DateFormat('dd/MM/yyyy à HH:mm').format(dateTime);
+      case 'en':
+        return '${DateFormat('MM/dd/yyyy').format(dateTime)} at ${DateFormat('HH:mm').format(dateTime)}';
+      case 'id':
+        return '${DateFormat('dd/MM/yyyy').format(dateTime)} pukul ${DateFormat('HH:mm').format(dateTime)}';
+      default:
+        return DateFormat('dd/MM/yyyy à HH:mm').format(dateTime);
+    }
+  }
+
   void _loadReunionDate() {
     _loadSavedData(); // Charger les données sauvegardées
   }
@@ -291,17 +306,21 @@ class _CountdownScreenState extends State<CountdownScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Row(
+          title: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AppLocalizations.of(context)!.whereWillReunionTakePlace),
-              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.of(context)!.whereWillReunionTakePlace,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 8),
               Image.asset(
                 'assets/globe_icon.png',
-                width: 20,
-                height: 20,
+                width: 24,
+                height: 24,
                 errorBuilder: (context, error, stackTrace) {
-                  return const Text('🌍');
+                  return const Text('🌍', style: TextStyle(fontSize: 20));
                 },
               ),
             ],
@@ -742,7 +761,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                                       Column(
                                         children: [
                                           Text(
-                                            AppLocalizations.of(context)!.appointmentOn(DateFormat('dd/MM/yyyy à HH:mm').format(_reunionDate!)),
+                                            AppLocalizations.of(context)!.appointmentOn(_formatDateTimeByLanguage(_reunionDate!)),
                                             style: TextStyle(
                                               fontSize: 16,
                                               color: Colors.pink[700],
