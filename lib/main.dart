@@ -216,9 +216,15 @@ class _CountdownScreenState extends State<CountdownScreen>
       case 'fr':
         return DateFormat('dd/MM/yyyy à HH:mm').format(dateTime);
       case 'en':
+<<<<<<< HEAD
         return "${DateFormat('MM/dd/yyyy').format(dateTime)} at ${DateFormat('HH:mm').format(dateTime)}";
       case 'id':
         return "${DateFormat('dd/MM/yyyy').format(dateTime)} pukul ${DateFormat('HH:mm').format(dateTime)}";
+=======
+        return '${DateFormat('MM/dd/yyyy').format(dateTime)} at ${DateFormat('HH:mm').format(dateTime)}';
+      case 'id':
+        return '${DateFormat('dd/MM/yyyy').format(dateTime)} pukul ${DateFormat('HH:mm').format(dateTime)}';
+>>>>>>> main
       default:
         return DateFormat('dd/MM/yyyy à HH:mm').format(dateTime);
     }
@@ -793,10 +799,14 @@ class _CountdownScreenState extends State<CountdownScreen>
                                       Column(
                                         children: [
                                           Text(
+<<<<<<< HEAD
                                             AppLocalizations.of(context)!
                                                 .appointmentOn(
                                                     _formatDateTimeByLanguage(
                                                         _reunionDate!)),
+=======
+                                            AppLocalizations.of(context)!.appointmentOn(_formatDateTimeByLanguage(_reunionDate!)),
+>>>>>>> main
                                             style: TextStyle(
                                               fontSize: 16,
                                               color: Colors.pink[700],
