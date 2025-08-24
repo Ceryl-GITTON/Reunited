@@ -1,7 +1,7 @@
 name: reunited_countdown_app
 description: Un widget de compte à rebours pour savoir le temps restant avant de retrouver sa petite amie
 publish_to: 'none'
-version: 1.4.0+1
+version: 1.5.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
