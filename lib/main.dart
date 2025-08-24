@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
+import 'widget_service_web.dart' if (dart.library.io) 'widget_service_stub.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialiser le service de widget seulement sur mobile (pas sur web)
+  if (!kIsWeb) {
+    await WidgetService.initialize();
+  }
+  
   runApp(const ReunitedCountdownApp());
 }
 
@@ -198,6 +207,19 @@ class _CountdownScreenState extends State<CountdownScreen>
     _startAnimations();
     _loadReunionDate();
     _startTimer();
+    _initializeWidgetService();
+  }
+  
+  void _initializeWidgetService() async {
+    // Initialiser et démarrer le service de widget seulement sur mobile
+    if (!kIsWeb) {
+      try {
+        WidgetService.startAutoUpdate();
+        await WidgetService.updateWidget();
+      } catch (e) {
+        print('Widget service initialization failed: $e');
+      }
+    }
   }
 
   void _startAnimations() {
@@ -266,6 +288,18 @@ class _CountdownScreenState extends State<CountdownScreen>
     // Sauvegarder la date de retrouvailles
     if (_reunionDate != null) {
       await prefs.setString('reunionDate', _reunionDate!.toIso8601String());
+      
+      // Configurer le widget avec les nouvelles données (seulement sur mobile)
+      if (!kIsWeb) {
+        try {
+          await WidgetService.configureWidget(
+            reunionDate: _reunionDate!,
+            timezone: _selectedTimezone,
+          );
+        } catch (e) {
+          print('Failed to update widget: $e');
+        }
+      }
     }
   }
 
@@ -561,12 +595,211 @@ class _CountdownScreenState extends State<CountdownScreen>
         );
     }
   }
+  
+  void _showWidgetDialog() async {
+    if (kIsWeb) {
+      // Sur web, afficher un message informatif
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.info, color: Colors.blue),
+                SizedBox(width: 8),
+                Text('Widgets non disponibles'),
+              ],
+            ),
+            content: const Text(
+              'Les widgets d\'écran d\'accueil ne sont disponibles que sur les appareils mobiles (Android/iOS).\n\n'
+              'Pour profiter des widgets, téléchargez l\'application mobile depuis les releases GitHub.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+    
+    // Sur mobile, vérifier le support des widgets
+    try {
+      final isSupported = await WidgetService.isWidgetSupported();
+      
+      if (!mounted) return;
+      
+      if (!isSupported) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Text('Widgets non supportés'),
+                ],
+              ),
+              content: const Text(
+                'Les widgets ne semblent pas être supportés sur cet appareil.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+      
+      // Afficher le dialog de configuration du widget
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.widgets, color: Colors.pink),
+                SizedBox(width: 8),
+                Text('Widget d\'écran d\'accueil'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ajoutez un widget de compte à rebours sur votre écran d\'accueil !',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 15),
+                const Text('✨ Le widget affichera :'),
+                const SizedBox(height: 8),
+                const Text('• Le temps restant avant les retrouvailles'),
+                const Text('• La date et l\'heure des retrouvailles'),
+                const Text('• Le lieu des retrouvailles'),
+                const Text('• Mise à jour automatique chaque seconde'),
+                const SizedBox(height: 15),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.pink[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.pink[200]!),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '📱 Comment ajouter le widget :',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 4),
+                      Text('1. Maintenez appuyé sur l\'écran d\'accueil'),
+                      Text('2. Sélectionnez "Widgets"'),
+                      Text('3. Cherchez "Reunited Countdown"'),
+                      Text('4. Glissez le widget sur l\'écran'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Plus tard'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  
+                  // Mettre à jour le widget avec les données actuelles
+                  if (_reunionDate != null) {
+                    try {
+                      await WidgetService.configureWidget(
+                        reunionDate: _reunionDate!,
+                        timezone: _selectedTimezone,
+                      );
+                      
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('✅ Widget configuré ! Ajoutez-le depuis l\'écran d\'accueil.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('❌ Erreur lors de la configuration : $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pink[600],
+                ),
+                icon: const Icon(Icons.check, color: Colors.white),
+                label: const Text('Configurer', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Erreur'),
+                ],
+              ),
+              content: Text('Une erreur est survenue : $e'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
     _timer.cancel();
     _heartController.dispose();
     _pulseController.dispose();
+    
+    // Arrêter le service de widget (seulement sur mobile)
+    if (!kIsWeb) {
+      try {
+        WidgetService.stopAutoUpdate();
+      } catch (e) {
+        print('Failed to stop widget service: $e');
+      }
+    }
+    
     super.dispose();
   }
 
@@ -837,6 +1070,15 @@ class _CountdownScreenState extends State<CountdownScreen>
           ),
         ),
       ),
+      floatingActionButton: !kIsWeb ? FloatingActionButton(
+        onPressed: _showWidgetDialog,
+        backgroundColor: Colors.pink[600],
+        child: const Icon(
+          Icons.widgets,
+          color: Colors.white,
+        ),
+        tooltip: 'Ajouter widget à l\'écran d\'accueil',
+      ) : null,
     );
   }
 
