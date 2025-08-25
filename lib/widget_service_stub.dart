@@ -6,14 +6,14 @@ import 'dart:async';
 /// Service de gestion des widgets d'écran d'accueil (version stub sans home_widget)
 class WidgetService {
   static Timer? _updateTimer;
-  
+
   /// Initialize widget service
   static Future<void> initialize() async {
     if (kIsWeb) {
       developer.log('Widget service not available on web');
       return;
     }
-    
+
     try {
       developer.log('WidgetService: Initialized (stub mode)');
     } catch (e) {
@@ -24,7 +24,7 @@ class WidgetService {
   /// Check if widgets are supported on this platform
   static Future<bool> isWidgetSupported() async {
     if (kIsWeb) return false;
-    
+
     try {
       return true; // Stub - retourner true pour Android
     } catch (e) {
@@ -42,15 +42,15 @@ class WidgetService {
       developer.log('Widget configuration not available on web');
       return;
     }
-    
+
     try {
       developer.log('WidgetService: Widget configured (stub mode)');
-      
+
       // Sauvegarder les données localement
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('reunion_date', reunionDate.millisecondsSinceEpoch);
       await prefs.setString('timezone', timezone);
-      
+
       developer.log('WidgetService: Configuration saved locally');
     } catch (e) {
       developer.log('WidgetService: Error configuring widget: $e');
@@ -61,7 +61,7 @@ class WidgetService {
   /// Update widget with current countdown
   static Future<void> updateWidget() async {
     if (kIsWeb) return;
-    
+
     try {
       developer.log('WidgetService: Widget updated (stub mode)');
     } catch (e) {
@@ -72,13 +72,13 @@ class WidgetService {
   /// Start auto-update timer
   static void startAutoUpdate() {
     if (kIsWeb) return;
-    
+
     stopAutoUpdate(); // Stop existing timer
-    
+
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       await updateWidget();
     });
-    
+
     developer.log('WidgetService: Auto-update started (stub mode)');
   }
 

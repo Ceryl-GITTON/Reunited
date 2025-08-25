@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
-import 'widget_service_web.dart' if (dart.library.io) 'widget_service_stub.dart';
+import 'widget_service_web.dart' if (dart.library.io) 'widget_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialiser le service de widget seulement sur mobile (pas sur web)
   if (!kIsWeb) {
     await WidgetService.initialize();
   }
-  
+
   runApp(const ReunitedCountdownApp());
 }
 
@@ -79,7 +78,11 @@ class _ReunitedCountdownAppState extends State<ReunitedCountdownApp> {
         fontFamily: 'Roboto',
         textTheme: const TextTheme().apply(
           fontFamily: 'Roboto',
-          fontFamilyFallback: ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'],
+          fontFamilyFallback: [
+            'Noto Color Emoji',
+            'Apple Color Emoji',
+            'Segoe UI Emoji'
+          ],
         ),
       ),
       home: CountdownScreen(onLanguageChange: _changeLanguage),
@@ -89,7 +92,7 @@ class _ReunitedCountdownAppState extends State<ReunitedCountdownApp> {
 
 class CountdownScreen extends StatefulWidget {
   final Function(Locale) onLanguageChange;
-  
+
   const CountdownScreen({super.key, required this.onLanguageChange});
 
   @override
@@ -105,7 +108,7 @@ class _CountdownScreenState extends State<CountdownScreen>
   late Animation<double> _pulseAnimation;
   late AnimationController _heartController;
   late Animation<double> _heartAnimation;
-  
+
   // Fuseaux horaires avec leurs décalages UTC
   String _selectedTimezone = 'Indonesia'; // Par défaut Indonésie
 
@@ -126,40 +129,40 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   // Fonction pour obtenir la Map des fuseaux avec calcul dynamique
   Map<String, Map<String, dynamic>> _getTimezones(BuildContext context) => {
-    'France': {
-      'displayName': AppLocalizations.of(context)!.france,
-      'flagAsset': 'assets/france_flag.png',
-      'flagEmoji': '🇫🇷',
-      'offset': _getFranceOffset(), // Calcul dynamique été/hiver
-    },
-    'Indonesia': {
-      'displayName': AppLocalizations.of(context)!.indonesiaJava,
-      'flagAsset': 'assets/indonesia_flag.png',
-      'flagEmoji': '🇮🇩',
-      'offset': 7, // UTC+7
-    },
-  };
+        'France': {
+          'displayName': AppLocalizations.of(context)!.france,
+          'flagAsset': 'assets/france_flag.png',
+          'flagEmoji': '🇫🇷',
+          'offset': _getFranceOffset(), // Calcul dynamique été/hiver
+        },
+        'Indonesia': {
+          'displayName': AppLocalizations.of(context)!.indonesiaJava,
+          'flagAsset': 'assets/indonesia_flag.png',
+          'flagEmoji': '🇮🇩',
+          'offset': 7, // UTC+7
+        },
+      };
 
   // Fonction pour calculer l'offset de la France selon la saison
   static int _getFranceOffset() {
     final now = DateTime.now();
-    
+
     // Heure d'été : dernier dimanche de mars à dernier dimanche d'octobre
     final marchLastSunday = _getLastSundayOfMonth(now.year, 3);
     final octoberLastSunday = _getLastSundayOfMonth(now.year, 10);
-    
+
     if (now.isAfter(marchLastSunday) && now.isBefore(octoberLastSunday)) {
       return 2; // UTC+2 (heure d'été)
     } else {
       return 1; // UTC+1 (heure d'hiver)
     }
   }
-  
+
   // Fonction pour trouver le dernier dimanche d'un mois
   static DateTime _getLastSundayOfMonth(int year, int month) {
     // Dernier jour du mois
     final lastDay = DateTime(year, month + 1, 0);
-    
+
     // Trouver le dernier dimanche
     final daysToSubtract = lastDay.weekday % 7;
     return DateTime(lastDay.year, lastDay.month, lastDay.day - daysToSubtract);
@@ -168,7 +171,6 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Fonction pour obtenir le décalage UTC de la machine locale
   int _getLocalTimezoneOffset() {
     final now = DateTime.now();
-    final utc = now.toUtc();
     // Le décalage est calculé en heures : heure locale - heure UTC
     final offsetInMinutes = now.timeZoneOffset.inMinutes;
     return (offsetInMinutes / 60).round();
@@ -177,7 +179,7 @@ class _CountdownScreenState extends State<CountdownScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Animation pour le cœur qui bat
     _heartController = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -190,7 +192,7 @@ class _CountdownScreenState extends State<CountdownScreen>
       parent: _heartController,
       curve: Curves.easeInOut,
     ));
-    
+
     // Animation pour l'effet de pulsation
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -209,16 +211,14 @@ class _CountdownScreenState extends State<CountdownScreen>
     _startTimer();
     _initializeWidgetService();
   }
-  
+
   void _initializeWidgetService() async {
     // Initialiser et démarrer le service de widget seulement sur mobile
     if (!kIsWeb) {
       try {
         WidgetService.startAutoUpdate();
         await WidgetService.updateWidget();
-      } catch (e) {
-        print('Widget service initialization failed: $e');
-      }
+      } catch (e) {}
     }
   }
 
@@ -249,13 +249,13 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Charger les données sauvegardées
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Charger le fuseau horaire de destination
     final savedTimezone = prefs.getString('selectedTimezone');
     if (savedTimezone != null && _validTimezoneKeys.contains(savedTimezone)) {
       _selectedTimezone = savedTimezone;
     }
-    
+
     // Charger la date de retrouvailles
     final savedDateString = prefs.getString('reunionDate');
     if (savedDateString != null) {
@@ -268,7 +268,7 @@ class _CountdownScreenState extends State<CountdownScreen>
     } else {
       _setDefaultReunionDate();
     }
-    
+
     _updateCountdown();
   }
 
@@ -281,14 +281,14 @@ class _CountdownScreenState extends State<CountdownScreen>
   // Sauvegarder les données
   Future<void> _saveData() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Sauvegarder le fuseau horaire
     await prefs.setString('selectedTimezone', _selectedTimezone);
-    
+
     // Sauvegarder la date de retrouvailles
     if (_reunionDate != null) {
       await prefs.setString('reunionDate', _reunionDate!.toIso8601String());
-      
+
       // Configurer le widget avec les nouvelles données (seulement sur mobile)
       if (!kIsWeb) {
         try {
@@ -296,9 +296,7 @@ class _CountdownScreenState extends State<CountdownScreen>
             reunionDate: _reunionDate!,
             timezone: _selectedTimezone,
           );
-        } catch (e) {
-          print('Failed to update widget: $e');
-        }
+        } catch (e) {}
       }
     }
   }
@@ -313,21 +311,22 @@ class _CountdownScreenState extends State<CountdownScreen>
     if (_reunionDate != null) {
       // Heure actuelle locale
       final now = DateTime.now();
-      
+
       // Obtenir le décalage UTC de la machine locale automatiquement
       final localOffset = _getLocalTimezoneOffset();
-      
+
       // Date de retrouvailles saisie dans le fuseau de destination
       // Je dois la convertir vers mon fuseau local pour calculer le temps restant
       final destinationOffset = _getTimezoneOffset(_selectedTimezone);
       final offsetDifference = localOffset - destinationOffset;
-      
+
       // Convertir l'heure de retrouvailles vers mon fuseau horaire local
-      final reunionInMyTimezone = _reunionDate!.add(Duration(hours: offsetDifference));
-      
+      final reunionInMyTimezone =
+          _reunionDate!.add(Duration(hours: offsetDifference));
+
       // Calculer le temps restant depuis ma perspective locale
       final difference = reunionInMyTimezone.difference(now);
-      
+
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
       });
@@ -364,9 +363,11 @@ class _CountdownScreenState extends State<CountdownScreen>
             children: _getTimezones(context).entries.map((entry) {
               final timezone = entry.value;
               return ListTile(
-                title: timezone['flagAsset'] != null 
-                  ? _buildFlagWithText(timezone['flagAsset'], timezone['displayName'])
-                  : Text('${timezone['flagEmoji']} ${timezone['displayName']}'),
+                title: timezone['flagAsset'] != null
+                    ? _buildFlagWithText(
+                        timezone['flagAsset'], timezone['displayName'])
+                    : Text(
+                        '${timezone['flagEmoji']} ${timezone['displayName']}'),
                 onTap: () => Navigator.of(context).pop(entry.key),
               );
             }).toList(),
@@ -380,7 +381,7 @@ class _CountdownScreenState extends State<CountdownScreen>
     setState(() {
       _selectedTimezone = selectedTz;
     });
-    
+
     // Sauvegarder immédiatement le changement
     _saveData();
 
@@ -431,13 +432,13 @@ class _CountdownScreenState extends State<CountdownScreen>
           pickedTime.hour,
           pickedTime.minute,
         );
-        
+
         // Stocker directement l'heure de destination
         // Le calcul se fera dans _updateCountdown
         setState(() {
           _reunionDate = reunionDateTime;
         });
-        
+
         // Sauvegarder immédiatement la nouvelle date
         _saveData();
         _updateCountdown();
@@ -445,20 +446,25 @@ class _CountdownScreenState extends State<CountdownScreen>
     }
   }
 
-  String _formatTimeComponent(int value, String label) {
-    return '$value\n$label${value > 1 ? 's' : ''}';
-  }
-
-  String _getLocalizedTimeLabel(BuildContext context, int value, String timeType) {
+  String _getLocalizedTimeLabel(
+      BuildContext context, int value, String timeType) {
     switch (timeType) {
       case 'day':
-        return value > 1 ? AppLocalizations.of(context)!.days : AppLocalizations.of(context)!.day;
+        return value > 1
+            ? AppLocalizations.of(context)!.days
+            : AppLocalizations.of(context)!.day;
       case 'hour':
-        return value > 1 ? AppLocalizations.of(context)!.hours : AppLocalizations.of(context)!.hour;
+        return value > 1
+            ? AppLocalizations.of(context)!.hours
+            : AppLocalizations.of(context)!.hour;
       case 'minute':
-        return value > 1 ? AppLocalizations.of(context)!.minutes : AppLocalizations.of(context)!.minute;
+        return value > 1
+            ? AppLocalizations.of(context)!.minutes
+            : AppLocalizations.of(context)!.minute;
       case 'second':
-        return value > 1 ? AppLocalizations.of(context)!.seconds : AppLocalizations.of(context)!.second;
+        return value > 1
+            ? AppLocalizations.of(context)!.seconds
+            : AppLocalizations.of(context)!.second;
       default:
         return '';
     }
@@ -481,7 +487,8 @@ class _CountdownScreenState extends State<CountdownScreen>
     );
   }
 
-  Widget _buildCenteredFlagWithText(String flagAsset, String text, TextStyle style) {
+  Widget _buildCenteredFlagWithText(
+      String flagAsset, String text, TextStyle style) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -497,71 +504,6 @@ class _CountdownScreenState extends State<CountdownScreen>
         Text(text, style: style, textAlign: TextAlign.center),
       ],
     );
-  }
-
-  Future<void> _showLanguageSelector() async {
-    final Map<String, Map<String, String>> languages = {
-      'en': {
-        'name': AppLocalizations.of(context)!.english,
-        'flag': '🇬🇧',
-      },
-      'fr': {
-        'name': AppLocalizations.of(context)!.french,
-        'flag': '🇫🇷',
-      },
-      'id': {
-        'name': AppLocalizations.of(context)!.indonesian,
-        'flag': '🇮🇩',
-      },
-    };
-
-    final String? selectedLanguage = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.language, color: Colors.pink),
-              const SizedBox(width: 8),
-              Text(AppLocalizations.of(context)!.selectLanguage),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: languages.entries.map((entry) {
-              final isSelected = Localizations.localeOf(context).languageCode == entry.key;
-              return ListTile(
-                leading: Text(
-                  entry.value['flag']!,
-                  style: const TextStyle(fontSize: 24),
-                ),
-                title: Text(entry.value['name']!),
-                trailing: isSelected 
-                  ? const Icon(Icons.check, color: Colors.pink)
-                  : null,
-                onTap: () => Navigator.of(context).pop(entry.key),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-
-    if (selectedLanguage != null) {
-      widget.onLanguageChange(Locale(selectedLanguage));
-    }
-  }
-
-  String _getCurrentLanguageFlag() {
-    final languageCode = Localizations.localeOf(context).languageCode;
-    switch (languageCode) {
-      case 'fr':
-        return '🇫🇷';
-      case 'id':
-        return '🇮🇩';
-      default:
-        return '🇬🇧';
-    }
   }
 
   Widget _buildFlagImage(String languageCode, {double size = 20}) {
@@ -595,7 +537,7 @@ class _CountdownScreenState extends State<CountdownScreen>
         );
     }
   }
-  
+
   void _showWidgetDialog() async {
     if (kIsWeb) {
       // Sur web, afficher un message informatif
@@ -625,13 +567,13 @@ class _CountdownScreenState extends State<CountdownScreen>
       );
       return;
     }
-    
+
     // Sur mobile, vérifier le support des widgets
     try {
       final isSupported = await WidgetService.isWidgetSupported();
-      
+
       if (!mounted) return;
-      
+
       if (!isSupported) {
         showDialog(
           context: context,
@@ -658,7 +600,7 @@ class _CountdownScreenState extends State<CountdownScreen>
         );
         return;
       }
-      
+
       // Afficher le dialog de configuration du widget
       showDialog(
         context: context,
@@ -719,7 +661,7 @@ class _CountdownScreenState extends State<CountdownScreen>
               ElevatedButton.icon(
                 onPressed: () async {
                   Navigator.of(context).pop();
-                  
+
                   // Mettre à jour le widget avec les données actuelles
                   if (_reunionDate != null) {
                     try {
@@ -727,11 +669,12 @@ class _CountdownScreenState extends State<CountdownScreen>
                         reunionDate: _reunionDate!,
                         timezone: _selectedTimezone,
                       );
-                      
+
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('✅ Widget configuré ! Ajoutez-le depuis l\'écran d\'accueil.'),
+                            content: Text(
+                                '✅ Widget configuré ! Ajoutez-le depuis l\'écran d\'accueil.'),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -740,7 +683,8 @@ class _CountdownScreenState extends State<CountdownScreen>
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('❌ Erreur lors de la configuration : $e'),
+                            content:
+                                Text('❌ Erreur lors de la configuration : $e'),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -752,7 +696,8 @@ class _CountdownScreenState extends State<CountdownScreen>
                   backgroundColor: Colors.pink[600],
                 ),
                 icon: const Icon(Icons.check, color: Colors.white),
-                label: const Text('Configurer', style: TextStyle(color: Colors.white)),
+                label: const Text('Configurer',
+                    style: TextStyle(color: Colors.white)),
               ),
             ],
           );
@@ -790,7 +735,7 @@ class _CountdownScreenState extends State<CountdownScreen>
     _timer.cancel();
     _heartController.dispose();
     _pulseController.dispose();
-    
+
     // Arrêter le service de widget (seulement sur mobile)
     if (!kIsWeb) {
       try {
@@ -799,7 +744,7 @@ class _CountdownScreenState extends State<CountdownScreen>
         print('Failed to stop widget service: $e');
       }
     }
-    
+
     super.dispose();
   }
 
@@ -821,7 +766,8 @@ class _CountdownScreenState extends State<CountdownScreen>
               children: [
                 const Icon(Icons.language, color: Colors.white),
                 const SizedBox(width: 4),
-                _buildFlagImage(Localizations.localeOf(context).languageCode, size: 16),
+                _buildFlagImage(Localizations.localeOf(context).languageCode,
+                    size: 16),
               ],
             ),
             onSelected: (String languageCode) {
@@ -981,12 +927,25 @@ class _CountdownScreenState extends State<CountdownScreen>
                                   children: [
                                     // Affichage du temps
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        _buildTimeCard(days, _getLocalizedTimeLabel(context, days, 'day')),
-                                        _buildTimeCard(hours, _getLocalizedTimeLabel(context, hours, 'hour')),
-                                        _buildTimeCard(minutes, _getLocalizedTimeLabel(context, minutes, 'minute')),
-                                        _buildTimeCard(seconds, _getLocalizedTimeLabel(context, seconds, 'second')),
+                                        _buildTimeCard(
+                                            days,
+                                            _getLocalizedTimeLabel(
+                                                context, days, 'day')),
+                                        _buildTimeCard(
+                                            hours,
+                                            _getLocalizedTimeLabel(
+                                                context, hours, 'hour')),
+                                        _buildTimeCard(
+                                            minutes,
+                                            _getLocalizedTimeLabel(
+                                                context, minutes, 'minute')),
+                                        _buildTimeCard(
+                                            seconds,
+                                            _getLocalizedTimeLabel(
+                                                context, seconds, 'second')),
                                       ],
                                     ),
                                     const SizedBox(height: 30),
@@ -994,7 +953,10 @@ class _CountdownScreenState extends State<CountdownScreen>
                                       Column(
                                         children: [
                                           Text(
-                                            AppLocalizations.of(context)!.appointmentOn(_formatDateTimeByLanguage(_reunionDate!)),
+                                            AppLocalizations.of(context)!
+                                                .appointmentOn(
+                                                    _formatDateTimeByLanguage(
+                                                        _reunionDate!)),
                                             style: TextStyle(
                                               fontSize: 16,
                                               color: Colors.pink[700],
@@ -1005,10 +967,12 @@ class _CountdownScreenState extends State<CountdownScreen>
                                           const SizedBox(height: 8),
                                           Builder(
                                             builder: (context) {
-                                              final timezone = _getTimezones(context)[_selectedTimezone]!;
-                                              if (timezone['flagAsset'] != null) {
+                                              final timezone = _getTimezones(
+                                                  context)[_selectedTimezone]!;
+                                              if (timezone['flagAsset'] !=
+                                                  null) {
                                                 return _buildCenteredFlagWithText(
-                                                  timezone['flagAsset'], 
+                                                  timezone['flagAsset'],
                                                   timezone['displayName'],
                                                   TextStyle(
                                                     fontSize: 14,
@@ -1058,7 +1022,8 @@ class _CountdownScreenState extends State<CountdownScreen>
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.pink[600],
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
@@ -1070,15 +1035,17 @@ class _CountdownScreenState extends State<CountdownScreen>
           ),
         ),
       ),
-      floatingActionButton: !kIsWeb ? FloatingActionButton(
-        onPressed: _showWidgetDialog,
-        backgroundColor: Colors.pink[600],
-        child: const Icon(
-          Icons.widgets,
-          color: Colors.white,
-        ),
-        tooltip: 'Ajouter widget à l\'écran d\'accueil',
-      ) : null,
+      floatingActionButton: !kIsWeb
+          ? FloatingActionButton(
+              onPressed: _showWidgetDialog,
+              backgroundColor: Colors.pink[600],
+              child: const Icon(
+                Icons.widgets,
+                color: Colors.white,
+              ),
+              tooltip: 'Ajouter widget à l\'écran d\'accueil',
+            )
+          : null,
     );
   }
 

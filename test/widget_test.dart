@@ -1,17 +1,30 @@
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reunited_countdown/main.dart';
+
+import 'package:reunited_countdown_app/main.dart';
 
 void main() {
-  testWidgets('Countdown app smoke test', (WidgetTester tester) async {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const ReunitedCountdownApp());
+    await tester.pumpWidget(const MyApp());
 
-    // Verify that the app displays the countdown screen
-    expect(find.text('Temps avant nos retrouvailles'), findsOneWidget);
-    expect(find.text('Modifier la date des retrouvailles'), findsOneWidget);
-    
-    // Verify heart icon is present
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
   });
 }

@@ -5,7 +5,7 @@ import 'dart:async';
 /// This provides the same interface but with no-op implementations
 class WidgetService {
   static Timer? _updateTimer;
-  
+
   /// Initialize widget service (no-op on web)
   static Future<void> initialize() async {
     if (kDebugMode) {

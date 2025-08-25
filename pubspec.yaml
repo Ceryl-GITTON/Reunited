@@ -1,7 +1,7 @@
 name: reunited_countdown_app
 description: Un widget de compte à rebours pour savoir le temps restant avant de retrouver sa petite amie
 publish_to: 'none'
-version: 1.5.0+1
+version: 1.7.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -15,11 +15,12 @@ dependencies:
   intl: any
   shared_preferences: ^2.2.2
   flutter_launcher_icons: ^0.14.1
+  home_widget: ^0.8.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.2
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
@@ -30,7 +31,15 @@ flutter:
 # Configuration pour l'icône de l'app
 flutter_launcher_icons:
   android: true
-  ios: true
+  ios: true  # Maintenant activé avec support iOS
   image_path: "assets/app_icon.png"
   adaptive_icon_background: "#FF69B4"
   adaptive_icon_foreground: "assets/app_icon.png"
+  remove_alpha_ios: true  # Supprimer le canal alpha pour iOS
+  
+# Dans votre pubspec.yaml, vous pouvez forcer certaines versions :
+dependency_overrides:
+  characters: ^1.4.1
+  material_color_utilities: ^0.13.0
+  meta: ^1.17.0
+  test_api: ^0.7.7
