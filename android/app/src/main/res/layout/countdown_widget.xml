@@ -5,48 +5,177 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="12dp">
 
+    <!-- Titre principal -->
     <TextView
         android:id="@+id/widget_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Reunited Countdown"
+        android:text="💕 Reunited Countdown"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginBottom="6dp" />
 
+    <!-- Compte à rebours en cartes (comme l'app) -->
+    <LinearLayout
+        android:id="@+id/widget_countdown_cards"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="8dp">
+
+        <!-- Carte Jours -->
+        <LinearLayout
+            android:id="@+id/card_days"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/time_card_background"
+            android:padding="6dp"
+            android:layout_marginEnd="3dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/widget_days"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textColor="#AD1457"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="jours"
+                android:textColor="#AD1457"
+                android:textSize="8sp"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+        <!-- Carte Heures -->
+        <LinearLayout
+            android:id="@+id/card_hours"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/time_card_background"
+            android:padding="6dp"
+            android:layout_marginEnd="3dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/widget_hours"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textColor="#AD1457"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="heures"
+                android:textColor="#AD1457"
+                android:textSize="8sp"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+        <!-- Carte Minutes -->
+        <LinearLayout
+            android:id="@+id/card_minutes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/time_card_background"
+            android:padding="6dp"
+            android:layout_marginEnd="3dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/widget_minutes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textColor="#AD1457"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="min"
+                android:textColor="#AD1457"
+                android:textSize="8sp"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+        <!-- Carte Secondes -->
+        <LinearLayout
+            android:id="@+id/card_seconds"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/time_card_background"
+            android:padding="6dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/widget_seconds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textColor="#AD1457"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sec"
+                android:textColor="#AD1457"
+                android:textSize="8sp"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Date de retrouvailles -->
     <TextView
         android:id="@+id/widget_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Temps restant avant les retrouvailles"
+        android:text="📅"
         android:textColor="#E0E0E0"
-        android:textSize="12sp"
+        android:textSize="10sp"
         android:gravity="center"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:id="@+id/widget_countdown"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="0j 00h 00m 00s"
-        android:textColor="#FF69B4"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="8dp" />
-
+    <!-- Localisation -->
     <TextView
         android:id="@+id/widget_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text=""
+        android:text="🌍"
         android:textColor="#E0E0E0"
         android:textSize="10sp"
-        android:gravity="center"
-        android:visibility="gone" />
+        android:gravity="center" />
 
 </LinearLayout>

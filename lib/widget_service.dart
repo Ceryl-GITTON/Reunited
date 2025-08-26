@@ -68,25 +68,65 @@ class WidgetService {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Récupérer les données sauvegardées
+      // Vérifier d'abord s'il y a des valeurs directes de l'app (plus précises)
+      final directDays = prefs.getInt('widget_days');
+      final directHours = prefs.getInt('widget_hours');
+      final directMinutes = prefs.getInt('widget_minutes');
+      final directSeconds = prefs.getInt('widget_seconds');
+      
+      if (directDays != null && directHours != null && directMinutes != null && directSeconds != null) {
+        // Utiliser les valeurs directes de l'app (SYNCHRONISATION PARFAITE)
+        developer.log('WidgetService: Using direct app values - Days: $directDays, Hours: $directHours');
+        
+        // Transmettre au widget Android
+        try {
+          await platform.invokeMethod('updateWidget', {
+            'days': directDays,
+            'hours': directHours,
+            'minutes': directMinutes,
+            'seconds': directSeconds,
+            'isTimeUp': prefs.getBool('widget_isTimeUp') ?? false,
+            'reunionDate': prefs.getString('widget_reunionDateFormatted') ?? '',
+            'timezone': prefs.getString('widget_timezone') ?? '',
+          });
+          developer.log('WidgetService: Direct sync completed');
+        } catch (e) {
+          developer.log('WidgetService: Platform channel error: $e');
+        }
+        return;
+      }
+      
+      // Sinon, utiliser l'ancien système de calcul (fallback)
       final reunionDateStr = prefs.getString('widget_reunionDate');
       final timezone = prefs.getString('widget_timezone') ?? 'Indonesia';
       
       if (reunionDateStr != null) {
         final reunionDate = DateTime.parse(reunionDateStr);
         
-        // Calculer le temps restant avec les fuseaux horaires
+        // Utiliser EXACTEMENT la même logique que l'application
         final now = DateTime.now();
+        
+        // Obtenir le décalage UTC de la machine locale automatiquement
         final localOffset = _getLocalTimezoneOffset();
+        
+        // Date de retrouvailles saisie dans le fuseau de destination
         final destinationOffset = getTimezoneOffset(timezone);
         final offsetDifference = localOffset - destinationOffset;
+        
+        // Convertir l'heure de retrouvailles vers mon fuseau horaire local
         final reunionInMyTimezone = reunionDate.add(Duration(hours: offsetDifference));
+        
+        // Calculer le temps restant depuis ma perspective locale
         final timeRemaining = reunionInMyTimezone.difference(now);
         
         // Sauvegarder les données pour le widget
         if (timeRemaining.isNegative) {
           await prefs.setString('widget_timeRemaining', 'C\'est l\'heure !');
           await prefs.setBool('widget_isTimeUp', true);
+          await prefs.setInt('widget_days', 0);
+          await prefs.setInt('widget_hours', 0);
+          await prefs.setInt('widget_minutes', 0);
+          await prefs.setInt('widget_seconds', 0);
         } else {
           final days = timeRemaining.inDays;
           final hours = timeRemaining.inHours % 24;
@@ -96,23 +136,32 @@ class WidgetService {
           final timeStr = '${days}j ${hours}h ${minutes}m ${seconds}s';
           await prefs.setString('widget_timeRemaining', timeStr);
           await prefs.setBool('widget_isTimeUp', false);
+          
+          // Sauvegarder aussi les valeurs séparément pour un meilleur design
+          await prefs.setInt('widget_days', days);
+          await prefs.setInt('widget_hours', hours);
+          await prefs.setInt('widget_minutes', minutes);
+          await prefs.setInt('widget_seconds', seconds);
         }
         
         await prefs.setString('widget_reunionDateFormatted', _formatDate(reunionDate));
         await prefs.setString('widget_timezone', _getTimezoneName(timezone));
         
         // Notifier le widget Android via MethodChannel
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          try {
-            await platform.invokeMethod('updateWidget', {
-              'timeRemaining': prefs.getString('widget_timeRemaining'),
-              'reunionDate': prefs.getString('widget_reunionDateFormatted'),
-              'timezone': prefs.getString('widget_timezone'),
-              'isTimeUp': prefs.getBool('widget_isTimeUp'),
-            });
-          } catch (e) {
-            developer.log('WidgetService: Platform channel error: $e');
-          }
+        try {
+          await platform.invokeMethod('updateWidget', {
+            'timeRemaining': prefs.getString('widget_timeRemaining'),
+            'reunionDate': prefs.getString('widget_reunionDateFormatted'),
+            'timezone': prefs.getString('widget_timezone'),
+            'isTimeUp': prefs.getBool('widget_isTimeUp'),
+            'days': prefs.getInt('widget_days'),
+            'hours': prefs.getInt('widget_hours'),
+            'minutes': prefs.getInt('widget_minutes'),
+            'seconds': prefs.getInt('widget_seconds'),
+          });
+          developer.log('WidgetService: Widget updated via MethodChannel - Days: ${prefs.getInt('widget_days')}, Hours: ${prefs.getInt('widget_hours')}');
+        } catch (e) {
+          developer.log('WidgetService: Platform channel error: $e');
         }
       }
     } catch (e) {

@@ -33,6 +33,10 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Ignore APK files (too large for GitHub)
+*.apk
+reunited-countdown-widget-*.apk
+
 # Symbolication related
 app.*.symbols
 

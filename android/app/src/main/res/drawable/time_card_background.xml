@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- Fond rose clair (comme l'app: Colors.pink[50]) -->
+    <solid android:color="#FDF2F8" />
+    
+    <!-- Coins arrondis -->
+    <corners android:radius="12dp" />
+    
+    <!-- Bordure rose (comme l'app: Colors.pink[200]) -->
+    <stroke 
+        android:width="1.5dp" 
+        android:color="#F8BBD9" />
+
+</shape>

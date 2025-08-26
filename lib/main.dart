@@ -210,6 +210,13 @@ class _CountdownScreenState extends State<CountdownScreen>
     _loadReunionDate();
     _startTimer();
     _initializeWidgetService();
+    
+    // Configurer le widget dès l'initialisation pour éviter les décalages
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_reunionDate != null) {
+        _configureWidget();
+      }
+    });
   }
 
   void _initializeWidgetService() async {
@@ -270,12 +277,66 @@ class _CountdownScreenState extends State<CountdownScreen>
     }
 
     _updateCountdown();
+    
+    // Configurer le widget avec les données chargées (IMMÉDIATEMENT)
+    await _configureWidget();
   }
 
   // Définir une date par défaut
   void _setDefaultReunionDate() {
     final now = DateTime.now();
     _reunionDate = now.add(const Duration(days: 30));
+  }
+
+  // Configurer le widget avec les données actuelles
+  Future<void> _configureWidget() async {
+    if (kIsWeb || _reunionDate == null) return;
+    
+    try {
+      await WidgetService.configureWidget(
+        reunionDate: _reunionDate!,
+        timezone: _selectedTimezone,
+      );
+      // Démarrer les mises à jour automatiques
+      WidgetService.startAutoUpdate();
+    } catch (e) {
+      // Ignorer les erreurs silencieusement pour ne pas affecter l'UX
+    }
+  }
+
+  // Mettre à jour le widget avec les MÊMES valeurs que l'application (synchronisation parfaite)
+  Future<void> _updateWidgetWithCurrentValues() async {
+    if (kIsWeb) return;
+    
+    try {
+      // Utiliser directement _timeRemaining calculé par l'app (AUCUNE différence possible !)
+      final days = _timeRemaining.inDays;
+      final hours = _timeRemaining.inHours % 24;
+      final minutes = _timeRemaining.inMinutes % 60;
+      final seconds = _timeRemaining.inSeconds % 60;
+      
+      // Sauvegarder directement dans SharedPreferences avec les valeurs de l'app
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('widget_days', days);
+      await prefs.setInt('widget_hours', hours);
+      await prefs.setInt('widget_minutes', minutes);
+      await prefs.setInt('widget_seconds', seconds);
+      await prefs.setBool('widget_isTimeUp', _timeRemaining == Duration.zero);
+      
+      if (_reunionDate != null) {
+        await prefs.setString('widget_reunionDateFormatted', _formatDateTimeByLanguage(_reunionDate!));
+        await prefs.setString('widget_timezone', _getTimezones(context)[_selectedTimezone]!['displayName']);
+      }
+      
+      // Notifier le widget Android immédiatement avec updateWidget standard
+      try {
+        await WidgetService.updateWidget();
+      } catch (e) {
+        // Ignorer
+      }
+    } catch (e) {
+      // Ignorer les erreurs
+    }
   }
 
   // Sauvegarder les données
@@ -296,6 +357,8 @@ class _CountdownScreenState extends State<CountdownScreen>
             reunionDate: _reunionDate!,
             timezone: _selectedTimezone,
           );
+          // Démarrer les mises à jour automatiques
+          WidgetService.startAutoUpdate();
         } catch (e) {}
       }
     }
@@ -305,6 +368,11 @@ class _CountdownScreenState extends State<CountdownScreen>
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateCountdown();
     });
+    
+    // Configurer le widget immédiatement au démarrage
+    if (!kIsWeb && _reunionDate != null) {
+      _configureWidget();
+    }
   }
 
   void _updateCountdown() {
@@ -330,6 +398,11 @@ class _CountdownScreenState extends State<CountdownScreen>
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
       });
+      
+      // Mettre à jour le widget avec les MÊMES valeurs que l'app (synchronisation parfaite)
+      if (!kIsWeb) {
+        _updateWidgetWithCurrentValues();
+      }
     }
   }
 
