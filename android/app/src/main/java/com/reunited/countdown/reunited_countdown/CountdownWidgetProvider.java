@@ -66,14 +66,14 @@ public class CountdownWidgetProvider extends AppWidgetProvider {
             }
         }
         
-        // Mettre à jour la date et lieu
-        if (!reunionDate.isEmpty()) {
-            views.setTextViewText(R.id.widget_subtitle, "📅 " + reunionDate);
-        }
+        // // Mettre à jour la date et lieu
+        // if (!reunionDate.isEmpty()) {
+        //     views.setTextViewText(R.id.widget_subtitle, "📅 " + reunionDate);
+        // }
         
-        if (!timezone.isEmpty()) {
-            views.setTextViewText(R.id.widget_location, "🌍 " + timezone);
-        }
+        // if (!timezone.isEmpty()) {
+        //     views.setTextViewText(R.id.widget_location, "🌍 " + timezone);
+        // }
         
         // Intent pour ouvrir l'app
         Intent intent = new Intent(context, MainActivity.class);
