@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
@@ -101,6 +104,7 @@ class CountdownScreen extends StatefulWidget {
 
 class _CountdownScreenState extends State<CountdownScreen>
     with TickerProviderStateMixin {
+  final GlobalKey _repaintKey = GlobalKey();
   late Timer _timer;
   DateTime? _reunionDate;
   Duration _timeRemaining = Duration.zero;
@@ -803,6 +807,52 @@ class _CountdownScreenState extends State<CountdownScreen>
     }
   }
 
+  Future<void> _shareCountdown() async {
+    final locale = Localizations.localeOf(context).languageCode;
+    final days = _timeRemaining.inDays;
+    final hours = _timeRemaining.inHours % 24;
+    final minutes = _timeRemaining.inMinutes % 60;
+
+    final String shareText;
+    if (_timeRemaining == Duration.zero) {
+      shareText = locale == 'fr'
+          ? "C'est le moment de nos retrouvailles ! 💕"
+          : locale == 'id'
+              ? "Saatnya kita bertemu! 💕"
+              : "It's time for our reunion! 💕";
+    } else {
+      shareText = locale == 'fr'
+          ? "💕 Plus que $days j · $hours h · ${minutes}min avant nos retrouvailles !"
+          : locale == 'id'
+              ? "💕 Tinggal ${days}h · ${hours}j · ${minutes}mnt lagi sampai kita bertemu!"
+              : "💕 Only ${days}d · ${hours}h · ${minutes}min until our reunion!";
+    }
+
+    try {
+      final boundary = _repaintKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) return;
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+      final bytes = byteData.buffer.asUint8List();
+      await Share.shareXFiles(
+        [XFile.fromData(bytes, name: 'countdown.png', mimeType: 'image/png')],
+        text: shareText,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                locale == 'fr' ? 'Erreur lors du partage' : 'Share error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _timer.cancel();
@@ -833,6 +883,11 @@ class _CountdownScreenState extends State<CountdownScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.share_rounded, color: Colors.white),
+            onPressed: _shareCountdown,
+            tooltip: 'Partager',
+          ),
           PopupMenuButton<String>(
             icon: Row(
               mainAxisSize: MainAxisSize.min,
@@ -897,7 +952,7 @@ class _CountdownScreenState extends State<CountdownScreen>
         ],
       ),
       extendBodyBehindAppBar: true,
-      body: Container(
+      body: RepaintBoundary(key: _repaintKey, child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1107,7 +1162,7 @@ class _CountdownScreenState extends State<CountdownScreen>
             ],
           ),
         ),
-      ),
+      )),
       floatingActionButton: !kIsWeb
           ? FloatingActionButton(
               onPressed: _showWidgetDialog,
