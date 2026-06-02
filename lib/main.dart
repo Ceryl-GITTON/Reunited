@@ -952,7 +952,7 @@ class _CountdownScreenState extends State<CountdownScreen>
         ],
       ),
       extendBodyBehindAppBar: true,
-      body: RepaintBoundary(key: _repaintKey, child: Container(
+      body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1014,8 +1014,10 @@ class _CountdownScreenState extends State<CountdownScreen>
                     builder: (context, child) {
                       return Transform.scale(
                         scale: _pulseAnimation.value,
-                        child: Container(
-                          margin: const EdgeInsets.all(20),
+                        child: RepaintBoundary(
+                          key: _repaintKey,
+                          child: Container(
+                            margin: const EdgeInsets.all(20),
                           padding: const EdgeInsets.all(30),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.9),
@@ -1127,7 +1129,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                                 ),
                             ],
                           ),
-                        ),
+                        )),
                       );
                     },
                   ),
@@ -1162,7 +1164,7 @@ class _CountdownScreenState extends State<CountdownScreen>
             ],
           ),
         ),
-      )),
+      ),
       floatingActionButton: !kIsWeb
           ? FloatingActionButton(
               onPressed: _showWidgetDialog,
