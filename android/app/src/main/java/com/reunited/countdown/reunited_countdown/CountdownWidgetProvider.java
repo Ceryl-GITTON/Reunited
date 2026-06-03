@@ -62,12 +62,12 @@ public class CountdownWidgetProvider extends AppWidgetProvider {
         long triggerAt = System.currentTimeMillis() + 1000;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExact(AlarmManager.RTC, triggerAt, pi);
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerAt, pi);
             } else {
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC, triggerAt, pi);
             }
         } else {
-            alarmManager.setExact(AlarmManager.RTC, triggerAt, pi);
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerAt, pi);
         }
     }
 
@@ -157,6 +157,8 @@ public class CountdownWidgetProvider extends AppWidgetProvider {
         for (int id : ids) {
             updateWidget(context, manager, id);
         }
+        // Restart the alarm chain (needed after fresh install or if chain was interrupted)
+        scheduleNextUpdate(context);
     }
 
     // --- Countdown calculation ---
