@@ -16,6 +16,7 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestBatteryOptimizationExemption()
+        startWidgetService()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -34,7 +35,6 @@ class MainActivity : FlutterActivity() {
 
                         val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", 0)
                         val editor = prefs.edit()
-
                         editor.putInt("flutter.widget_days", days)
                         editor.putInt("flutter.widget_hours", hours)
                         editor.putInt("flutter.widget_minutes", minutes)
@@ -43,7 +43,6 @@ class MainActivity : FlutterActivity() {
                         editor.putString("flutter.widget_reunionDateFormatted", call.argument<String>("reunionDate") ?: "")
                         editor.putString("flutter.widget_timezone", call.argument<String>("timezone") ?: "")
                         editor.putBoolean("flutter.widget_isTimeUp", call.argument<Boolean>("isTimeUp") ?: false)
-
                         editor.apply()
 
                         CountdownWidgetProvider.updateAllWidgets(applicationContext)
@@ -55,6 +54,15 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+    }
+
+    private fun startWidgetService() {
+        val intent = Intent(this, CountdownWidgetService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
 
     private fun requestBatteryOptimizationExemption() {
